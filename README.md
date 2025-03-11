@@ -1,2 +1,2 @@
 # go-ubus-rpc
-A Go library to make RPC calls to OpenWRT's ubus
+A Go library to make RPCs to OpenWRT's ubus
