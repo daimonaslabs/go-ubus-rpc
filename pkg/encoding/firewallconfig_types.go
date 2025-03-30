@@ -45,6 +45,7 @@ var ICMPTypes = []string{
 }
 
 type DefaultsSection struct {
+	UCIConfigOptionsStatic
 	// Accepts redirects. Implemented upstream in Linux Kernel.
 	AcceptRedirects UbusBool `json:"acceptRedirects,omitempty" ubus:"accept_redirects,omitempty"`
 	// Implemented upstream in Linux Kernel.
@@ -91,7 +92,12 @@ type DefaultsSection struct {
 	TCPWindowScaling UbusBool `json:"tcpWindowScaling,omitempty" ubus:"tcp_window_scaling,omitempty"`
 }
 
+func (in *DefaultsSection) DeepCopyInto(out *DefaultsSection) {
+	*out = *in
+}
+
 type ForwardingSection struct {
+	UCIConfigOptionsStatic
 	// Specifies the traffic destination zone. Refers to one of the defined zone names.
 	Dest string `json:"dest,omitempty" ubus:"dest,omitempty"`
 	// If set to 0, forward is disabled.
@@ -108,7 +114,12 @@ type ForwardingSection struct {
 	Src string `json:"src,omitempty" ubus:"src,omitempty"`
 }
 
+func (in *ForwardingSection) DeepCopyInto(out *ForwardingSection) {
+	*out = *in
+}
+
 type RedirectSection struct {
+	UCIConfigOptionsStatic
 	// Specifies the traffic destination zone. Refers to one of the defined zone names, or * for any zone. If
 	// specified, the rule applies to forwarded traffic; otherwise, it is treated as input rule.
 	Dest string `json:"dest,omitempty" ubus:"dest,omitempty"`
@@ -187,7 +198,12 @@ type RedirectSection struct {
 	UTCTime UbusBool `json:"utcTime,omitempty" ubus:"utc_time,omitempty"`
 }
 
+func (in *RedirectSection) DeepCopyInto(out *RedirectSection) {
+	*out = *in
+}
+
 type RuleSection struct {
+	UCIConfigOptionsStatic
 	// Specifies the traffic destination zone. Refers to one of the defined zone names, or * for any zone. If
 	// specified, the rule applies to forwarded traffic; otherwise, it is treated as input rule.
 	Dest string `json:"dest,omitempty" ubus:"dest,omitempty"`
@@ -266,7 +282,12 @@ type RuleSection struct {
 	Weekdays Time `json:"weekdays,omitempty" ubus:"weekdays,omitempty"`
 }
 
+func (in *RuleSection) DeepCopyInto(out *RuleSection) {
+	*out = *in
+}
+
 type ZoneSection struct {
+	UCIConfigOptionsStatic
 	// Add CT helpers for zone.
 	AutoHelper UbusBool `json:"autoHelper,omitempty" ubus:"auto_helper,omitempty"`
 	// Enable generation of custom rule chain hooks for user generated rules. Has no effect if disabled (0) in a
@@ -316,4 +337,8 @@ type ZoneSection struct {
 	Output string `json:"output,omitempty" ubus:"output,omitempty"`
 	// List of IP subnets attached to this zone.
 	Subnet []string `json:"subnet,omitempty" ubus:"subnet,omitempty"`
+}
+
+func (in *ZoneSection) DeepCopyInto(out *ZoneSection) {
+	*out = *in
 }
