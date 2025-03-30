@@ -1,3 +1,8 @@
+/*
+This package contains types and functions which make it easy to construct ubus calls by providing type
+safety to the unique ubus parameters as well as providing a new ubus encoder so that standard Go structs
+can be marshaled into these types.
+*/
 package encoding
 
 import (
@@ -5,12 +10,6 @@ import (
 	"net/netip"
 	"time"
 )
-
-/*
-This package contains types and functions which make it easy to construct ubus calls by providing type
-safety to the unique ubus parameters as well as providing a new ubus encoder so that standard Go structs
-can be marshaled into these types.
-*/
 
 type UCIConfigOptionsStatic struct {
 	Anonymous bool   `json:"dotAnonymous" ubus:".anonymous"`
@@ -24,7 +23,7 @@ var UbusBoolTrue = "1"
 
 type UbusBool string
 
-func ConvertBool(b bool) string {
+func ToUbusBool(b bool) string {
 	if b {
 		return UbusBoolTrue
 	} else {
@@ -80,7 +79,7 @@ func (in *MAC) DeepCopy() *MAC {
 	return out
 }
 
-// TODO make this safer, splitu into separate types which only contain required values
+// TODO make this safer, split into separate types which only contain required values
 // see FirewallConfig.RuleSection for all the different time and date options needed
 type Time struct {
 	time.Time
