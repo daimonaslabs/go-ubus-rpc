@@ -1,4 +1,4 @@
-package encoding
+package uci
 
 import (
 	"net"
@@ -13,25 +13,25 @@ type UCIConfigOptionsStatic struct {
 	Index     int    `json:"dotIndex" ubus:".index"`
 }
 
-var UbusBoolFalse = "0"
-var UbusBoolTrue = "1"
+var StringBoolFalse = "0"
+var StringBoolTrue = "1"
 
-type UbusBool string
+type StringBool string
 
-func ToUbusBool(b bool) string {
+func ToStringBool(b bool) string {
 	if b {
-		return UbusBoolTrue
+		return StringBoolTrue
 	} else {
-		return UbusBoolFalse
+		return StringBoolFalse
 	}
 }
 
 func True() string {
-	return UbusBoolTrue
+	return StringBoolTrue
 }
 
 func False() string {
-	return UbusBoolFalse
+	return StringBoolFalse
 }
 
 type IP struct {
