@@ -13,28 +13,7 @@ import (
 
 type Params []any
 
-//type InitSessionRequest struct {
-//	JSONRPC string `json:"jsonrpc"`
-//	ID      int    `json:"id"`
-//	Method  string `json:"method"`
-//	Params  []any  `json:"params"`
-//}
-
 func NewInitSessionRequest(username, password string) Params {
-	//	return &InitSessionRequest{
-	//		JSONRPC: "2.0",
-	//		ID:      1,
-	//		Method:  "call",
-	//		Params: []any{
-	//			"00000000000000000000000000000000",
-	//			"session",
-	//			"login",
-	//			map[string]string{
-	//				"username": username,
-	//				"password": password,
-	//			},
-	//		},
-	//	}
 	return []any{
 		"00000000000000000000000000000000",
 		"session",
