@@ -1,7 +1,7 @@
 package firewall
 
 import (
-	"github.com/daimonaslabs/go-ubus-rpc/pkg/uci"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
 )
 
 // Used by RuleSection.ICMPType

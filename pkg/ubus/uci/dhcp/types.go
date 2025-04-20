@@ -1,7 +1,7 @@
 package dhcp
 
 import (
-	"github.com/daimonaslabs/go-ubus-rpc/pkg/uci"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
 )
 
 // TODO

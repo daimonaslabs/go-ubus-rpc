@@ -6,7 +6,6 @@
 ## Implementation
 - Separate request and response types (request is struct, response is interface)
     - net/http will be involved somehow
-- Custom marshaller for \`ubus\` tags ([Config.TagKey](https://pkg.go.dev/github.com/json-iterator/go#Config))
 - ubus `Path` = Go type, `Procedure` = Methods
 
 Example:
