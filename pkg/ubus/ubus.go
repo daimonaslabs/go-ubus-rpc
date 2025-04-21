@@ -1,27 +1,13 @@
 package ubus
 
-type UbusHandler interface {
-	UbusRPC(*UbusCall, UbusResponseWriter) error
+import (
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/session"
+)
+
+type Ubus interface {
+	Session() session.SessionCaller
 }
 
-type UbusHandlerFunc func(*UbusCall, UbusResponseWriter) error
-
-func (uhf UbusHandlerFunc) UbusRPC(uc *UbusCall, urw UbusResponseWriter) error {
-	return uhf(uc, urw)
-}
-
-type SessionID string
-type Path string
-type Procedure string
-type Signature map[string]any
-
-type UbusCall struct {
-	SessionID SessionID
-	Path      Path
-	Procedure Procedure
-	Signature Signature
-}
-
-type UbusResponseWriter interface {
-	Write([]byte) error
+type UbusCaller interface {
+	Session() session.SessionCaller
 }
