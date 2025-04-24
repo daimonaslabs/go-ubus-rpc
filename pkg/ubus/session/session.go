@@ -4,18 +4,27 @@ import (
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/client/ubus"
 )
 
-type SessionCaller interface {
-	Login(opts *LoginOptions)
+type SessionInterface interface {
+	Login(opts *LoginOptions) (*ubus.UbusResponse, error)
 }
 
-func Login(us *ubus.Session, opts *LoginOptions) {
+type sessionCall struct {
+	*ubus.UbusCall
+}
 
+func loginCall(opts *LoginOptions) sessionCall {
+	call := sessionCall{}
+	call.SetPath("session")
+	call.SetProcedure("login")
+	call.SetSignature(opts)
+
+	return call
 }
 
 type LoginOptions struct {
-	Username string
-	Password string
-	Timeout  int
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Timeout  int    `json:"timeout,omitempty"`
 }
 
 /*

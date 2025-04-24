@@ -2,8 +2,6 @@ package client
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -22,10 +20,12 @@ type Client struct {
 	UbusSession *UbusSession
 }
 
-func (c *Client) NewUbusCall() *ubus.UbusCall {
-	return &ubus.UbusCall{
-		SessionID: c.UbusSession.SessionID,
-	}
+type Caller interface {
+	Call() (*ubus.UbusResponse, error)
+}
+
+func (c *Client) Call(call *ubus.UbusCall) (*ubus.UbusResponse, error) {
+	return &ubus.UbusResponse{}, nil
 }
 
 type ClientOptions struct {
@@ -52,32 +52,27 @@ func NewClient(ctx context.Context, opts *ClientOptions) (c *Client) {
 		RPCClient: rpcClient,
 		UbusSession: &UbusSession{
 			SessionID: ubus.LoginSessionID,
-			Keepalive: ubus.DefaultSessionTimeout / 2,
+			Keepalive: opts.Timeout / 2,
 		},
 	}
 	login := &ubus.UbusCall{
 		SessionID: c.UbusSession.SessionID,
 		Path:      "session",
 		Procedure: "login",
-		Signature: ubus.Signature{
+		Signature: map[string]any{
 			"username": opts.Username,
 			"password": opts.Password,
 			"timeout":  opts.Timeout,
 		},
 	}
-	request := login.ToParams()
-	requestJSON, err := json.Marshal(request)
+	request := login.AsParams()
 	if err != nil {
 		log.Fatalln(err)
 	}
 	err = c.RPCClient.CallContext(ctx, &response, "call", request...)
 	if err != nil {
-		fmt.Println("err: ", err)
-		log.Println("Error initiating ubus RPC session")
+		log.Fatalln(err)
 	}
-	fmt.Println("request: ", request)
-	fmt.Println("requestJSON: ", string(requestJSON))
-	fmt.Println("response: ", response)
 
 	return c
 }

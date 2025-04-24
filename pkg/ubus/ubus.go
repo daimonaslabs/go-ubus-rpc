@@ -1,13 +1,20 @@
 package ubus
 
 import (
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/client"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/session"
 )
 
-type Ubus interface {
-	Session() session.SessionCaller
+type UbusInterface interface {
+	UbusClient() client.Caller
+	SessionInterface() session.SessionInterface
+	// UCICallGetter
 }
 
-type UbusCaller interface {
-	Session() session.SessionCaller
+type UbusClient struct {
+	client client.Caller
 }
+
+//type UCICallGetter interface {
+//	UCI() *UbusCall
+//}
