@@ -1,16 +1,25 @@
 package main
 
 import (
-	"context"
 	"fmt"
+	"log"
 
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/client"
-	"github.com/daimonaslabs/go-ubus-rpc/pkg/client/ubus"
 )
 
 func main() {
-	ctx := context.Background()
-	sesh := client.NewClient(ctx, &client.ClientOptions{Username: "root", Password: "D@!monas", URL: "http://10.0.0.1/ubus", Timeout: ubus.DefaultSessionTimeout})
+	opts := client.ClientOptions{Username: "root", Password: "D@!monas", URL: "http://10.0.0.1/ubus", Timeout: client.DefaultSessionTimeout}
+	rpc, err := client.NewUbusRPC(&opts)
+	login := client.LoginOptions{
+		Username: opts.Username,
+		Password: opts.Password,
+		Timeout:  opts.Timeout,
+	}
+	response := rpc.Session().Login(&login)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	fmt.Println("sesh: ", sesh)
+	fmt.Println(response)
+
 }
