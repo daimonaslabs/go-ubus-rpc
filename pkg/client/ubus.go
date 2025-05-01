@@ -4,26 +4,27 @@ import (
 	"encoding/json"
 )
 
-var LoginSessionID = SessionID([]byte("00000000000000000000000000000000"))
-var DefaultSessionTimeout = int(300)
+const (
+	LoginSessionID         SessionID = "00000000000000000000000000000000"
+	DefaultSessionTimeout  uint      = 300
+	NoExpirySessionTimeout uint      = 0
+)
 
-type SessionID [32]byte
+// maybe use this to do validation on the SessionID
+//type sessionID [32]byte
+
 type Params []any
-
-type Signature any // Signature struct types must have JSON tags
-type UbusResponse map[string]any
+type SessionID string
+type Signature any
 
 type UbusInterface interface {
 	SessionCallGetter
 	// UCICallGetter
 }
 
-type SessionCallGetter interface {
-	Session() SessionInterface
-}
-
 // implements UbusInterface
 type UbusRPC struct {
+	Call CallInterface
 	*clientset
 	sessionCall
 	//uciCall
@@ -33,45 +34,13 @@ func (u *UbusRPC) Session() SessionInterface {
 	return newSessionCall(u)
 }
 
-func newSessionCall(u *UbusRPC) *sessionCall {
-	u.sessionCall.SetSessionID(u.ubusSession.SessionID)
-	u.sessionCall.SetPath("session")
-	return &u.sessionCall
+type CallInterface interface {
+	AsParams() Params
+	SetSessionID(id SessionID)
+	SetPath(p string)
+	SetProcedure(p string)
+	SetSignature(sig any)
 }
-
-type SessionInterface interface {
-	Login(opts *LoginOptions) *sessionCall
-}
-
-// implements SessionInterface
-type sessionCall struct {
-	Call
-}
-
-func (c *sessionCall) Login(opts *LoginOptions) *sessionCall {
-	c.SetProcedure("login")
-	c.SetSignature(map[string]any{
-		"username": opts.Username,
-		"password": opts.Password,
-		"timeout":  opts.Timeout,
-	})
-
-	return c
-}
-
-type LoginOptions struct {
-	Username string
-	Password string
-	Timeout  int
-}
-
-//type CallInterface interface {
-//	AsParams() Params
-//	SetSessionID(id SessionID)
-//	SetPath(p string)
-//	SetProcedure(p string)
-//	SetSignature(sig any)
-//}
 
 // implements CallInterface
 type Call struct {
@@ -105,10 +74,78 @@ func (uc *Call) AsParams() Params {
 	return Params{uc.SessionID, uc.Path, uc.Procedure, uc.Signature}
 }
 
-//type Session struct {
-//	SessionID string
-//	Timeout   int
-//	Expires   int
-//	//ACLs	ACL
-//	Data map[string]string
+type ResultInterface interface {
+	//ToMap() map[string]any
+}
+
+// implements ResultInterface
+type Result struct {
+	resultJSON
+}
+
+type resultJSON = []resultContent
+
+type resultContent struct {
+	int
+	resultContentInterface
+}
+
+type resultContentInterface interface {
+}
+
+//type SignatureInterface interface {
+//	//SessionSignatureGetter
+//	// UCISignatureGetter
+//	ToMap() map[string]any
+//}
+
+//func (s *Signature) Signature() SignatureInterface {
+//	return &LoginOptions{}
+//}
+//
+//type SessionSignatureGetter interface {
+//	Session() SessionSignatureInterface
+//}
+//
+//type SessionSignatureInterface interface {
+//	Login() map[string]any
+//	Get() map[string]any
+//}
+
+//func (l *LoginOptions) Signature() SignatureInterface {
+//	return Signature(map[string]any{
+//		"username": l.Username,
+//		"password": l.Password,
+//		"timeout":  l.Timeout,
+//	})
+//}
+
+//func ToMap[S SignatureInterface](s S) map[string]any {
+//	print(s)
+//	var sigMap map[string]any
+//	data, err := json.Marshal(s)
+//	if err != nil {
+//		panic(err)
+//	}
+//
+//	err = json.Unmarshal(data, &sigMap)
+//	if err != nil {
+//		panic(err)
+//	}
+//	return sigMap
+//}
+
+//func (s Signature) ToMap() map[string]any {
+//	print(s)
+//	var sigMap map[string]any
+//	data, err := json.Marshal(s)
+//	if err != nil {
+//		panic(err)
+//	}
+//
+//	err = json.Unmarshal(data, &sigMap)
+//	if err != nil {
+//		panic(err)
+//	}
+//	return sigMap
 //}
