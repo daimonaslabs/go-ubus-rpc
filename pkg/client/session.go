@@ -1,11 +1,16 @@
 package client
 
+import (
+	"encoding/json"
+	"errors"
+)
+
 type Session struct {
-	SessionID SessionID         `json:"ubus_rpc_session"`
-	Timeout   int               `json:"timeout"`
-	Expires   int               `json:"expires"`
-	ACLs      ACL               `json:"acls"`
-	Data      map[string]string `json:"data"`
+	SessionID SessionID `json:"ubus_rpc_session"`
+	Timeout   int       `json:"timeout"`
+	Expires   int       `json:"expires"`
+	ACLs      ACL       `json:"acls"`
+	Data      Data      `json:"data"`
 }
 
 type ACL struct {
@@ -14,6 +19,10 @@ type ACL struct {
 	File        map[string][]string `json:"file,omitempty"`
 	Ubus        map[string][]string `json:"ubus"`
 	UCI         map[string][]string `json:"uci,omitempty"`
+}
+
+type Data struct {
+	Username string `json:"username"`
 }
 
 type SessionCallGetter interface {
@@ -50,4 +59,21 @@ type LoginOptions struct {
 	Username string
 	Password string
 	Timeout  uint
+}
+
+// Implements ResultObject interface
+type SessionResult struct {
+	Session
+}
+
+func (SessionResult) isResultObject() {}
+
+// Checker for SessionResponse
+func matchSessionResponse(data json.RawMessage) (ResultObject, error) {
+	var tmp *Session
+
+	if err := json.Unmarshal(data, &tmp); err == nil && tmp != nil {
+		return SessionResult{*tmp}, nil
+	}
+	return nil, errors.New("not a SessionResponse")
 }

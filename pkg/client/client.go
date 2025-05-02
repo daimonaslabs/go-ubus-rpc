@@ -2,7 +2,7 @@ package client
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -22,8 +22,8 @@ import (
 //}
 
 type clientset struct {
-	rpcClient *rpc.Client
-	SessionID SessionID
+	rpcClient   *rpc.Client
+	ubusSession *Session
 }
 
 type ClientOptions struct {
@@ -40,7 +40,7 @@ func NewUbusRPC(ctx context.Context, opts *ClientOptions) (*UbusRPC, error) {
 	}, err
 }
 
-func (u *UbusRPC) Do(ctx context.Context) (r *Result, err error) {
+func (u *UbusRPC) Do(ctx context.Context) (r *Response, err error) {
 	err = u.clientset.rpcClient.CallContext(ctx, &r, "call", u.Call.AsParams()...)
 	return r, err
 }
@@ -57,11 +57,11 @@ func newClientset(ctx context.Context, opts *ClientOptions) (c *clientset, err e
 	}
 
 	c = &clientset{
-		rpcClient: rpcClient,
-		SessionID: LoginSessionID,
+		rpcClient:   rpcClient,
+		ubusSession: &Session{},
 	}
 	login := &Call{
-		SessionID: c.SessionID,
+		SessionID: LoginSessionID,
 		Path:      "session",
 		Procedure: "login",
 		Signature: map[string]any{
@@ -71,8 +71,8 @@ func newClientset(ctx context.Context, opts *ClientOptions) (c *clientset, err e
 		},
 	}
 
-	// TODO this can be marshallable so CallContext writes straight to it
-	result := Result{}
+	// initialize ubus client
+	result := Response{}
 	request := login.AsParams()
 	if err != nil {
 		log.Fatalln(err)
@@ -82,6 +82,10 @@ func newClientset(ctx context.Context, opts *ClientOptions) (c *clientset, err e
 		log.Fatalln(err)
 	}
 
-	fmt.Println(result)
+	session, ok := result[1].(SessionResult)
+	if !ok {
+		err = errors.New("invalid response to ubus session login")
+	}
+	c.ubusSession = &session.Session
 	return c, err
 }
