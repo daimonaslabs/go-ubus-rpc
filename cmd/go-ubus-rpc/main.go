@@ -15,6 +15,12 @@ func main() {
 	if err != nil {
 		fmt.Println(rpc, err)
 	}
+
+	rpc.Call = rpc.UCI().Get(&client.UCIOptions{Config: "firewall", Section: "cfg04ad58", Option: "src"})
+	result, err := rpc.Do(ctx)
+	data := new([]byte)
+	result.UnmarshalJSON(*data)
+	fmt.Println(data)
 }
 
 // SAMPLE CALL BY USER

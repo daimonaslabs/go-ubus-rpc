@@ -4,19 +4,20 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 )
 
-// Interface for content within a Response
+// interface for content within a Response
 type ResultObject interface {
 	isResultObject()
 }
 
-// Effectively a tuple:
+// effectively a tuple:
 // Response[0] is always an int (IntWrapper)
 // Response[1] is always an xResult type (e.g. SessionResult)
 type Response []ResultObject
 
-// Custom UnmarshalJSON for Response
+// custom UnmarshalJSON for Response
 func (r *Response) UnmarshalJSON(data []byte) error {
 	var raw []json.RawMessage
 
@@ -30,6 +31,7 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 			if obj, err := checker(item); err == nil {
 				*r = append(*r, obj)
 				matched = true
+				fmt.Println(matched, reflect.TypeOf(obj))
 				break
 			}
 		}
@@ -41,7 +43,7 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Custom MarshalJSON for Response
+// custom MarshalJSON for Response
 func (r Response) MarshalJSON() ([]byte, error) {
 	var raw []json.RawMessage
 
@@ -56,14 +58,14 @@ func (r Response) MarshalJSON() ([]byte, error) {
 	return json.Marshal(raw)
 }
 
-// Used to wrap plain ints
+// used to wrap plain ints
 type IntWrapper struct {
 	Value int
 }
 
 func (IntWrapper) isResultObject() {}
 
-// Checker for IntWrapper
+// checker for IntWrapper
 func matchIntWrapper(data json.RawMessage) (ResultObject, error) {
 	var val int
 	if err := json.Unmarshal(data, &val); err == nil {
@@ -72,7 +74,7 @@ func matchIntWrapper(data json.RawMessage) (ResultObject, error) {
 	return nil, errors.New("not an IntWrapper")
 }
 
-// Response type registry
+// response type registry
 type resultObjectChecker func(json.RawMessage) (ResultObject, error)
 
 var resultTypeRegistry []resultObjectChecker
@@ -83,5 +85,7 @@ func registerResultType(checker resultObjectChecker) {
 
 func init() {
 	registerResultType(matchIntWrapper)
-	registerResultType(matchSessionResponse)
+	registerResultType(matchSessionResult)
+	registerResultType(matchValueResult)
+	registerResultType(matchValuesResult)
 }

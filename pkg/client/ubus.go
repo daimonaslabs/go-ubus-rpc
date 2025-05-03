@@ -19,7 +19,7 @@ type Signature any
 
 type UbusInterface interface {
 	SessionCallGetter
-	// UCICallGetter
+	UCICallGetter
 }
 
 // implements UbusInterface
@@ -27,11 +27,15 @@ type UbusRPC struct {
 	Call CallInterface
 	*clientset
 	sessionCall
-	//uciCall
+	uciCall
 }
 
 func (u *UbusRPC) Session() SessionInterface {
 	return newSessionCall(u)
+}
+
+func (u *UbusRPC) UCI() UCIInterface {
+	return newUCICall(u)
 }
 
 type CallInterface interface {

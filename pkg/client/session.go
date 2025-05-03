@@ -30,7 +30,7 @@ type SessionCallGetter interface {
 }
 
 func newSessionCall(u *UbusRPC) *sessionCall {
-	u.sessionCall.SetSessionID(u.SessionID)
+	u.sessionCall.SetSessionID(u.ubusSession.SessionID)
 	u.sessionCall.SetPath("session")
 	return &u.sessionCall
 }
@@ -46,34 +46,30 @@ type sessionCall struct {
 
 func (c *sessionCall) Login(opts *LoginOptions) CallInterface {
 	c.SetProcedure("login")
-	c.SetSignature(map[string]any{
-		"username": opts.Username,
-		"password": opts.Password,
-		"timeout":  opts.Timeout,
-	})
+	c.SetSignature(opts)
 
 	return c
 }
 
 type LoginOptions struct {
-	Username string
-	Password string
-	Timeout  uint
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Timeout  uint   `json:"timeout"`
 }
 
-// Implements ResultObject interface
+// implements ResultObject interface
 type SessionResult struct {
 	Session
 }
 
 func (SessionResult) isResultObject() {}
 
-// Checker for SessionResponse
-func matchSessionResponse(data json.RawMessage) (ResultObject, error) {
+// checker for SessionResponse
+func matchSessionResult(data json.RawMessage) (ResultObject, error) {
 	var tmp *Session
 
 	if err := json.Unmarshal(data, &tmp); err == nil && tmp != nil {
 		return SessionResult{*tmp}, nil
 	}
-	return nil, errors.New("not a SessionResponse")
+	return nil, errors.New("not a SessionResult")
 }
