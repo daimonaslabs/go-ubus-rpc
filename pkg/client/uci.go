@@ -2,12 +2,7 @@ package client
 
 import (
 	"encoding/json"
-	"fmt"
 )
-
-type UCICallGetter interface {
-	UCI() UCIInterface
-}
 
 func newUCICall(u *UbusRPC) *uciCall {
 	u.uciCall.SetSessionID(u.ubusSession.SessionID)
@@ -55,14 +50,12 @@ func (ValueResult) isResultObject() {}
 
 // checker for ValueResult
 func matchValueResult(data json.RawMessage) (ResultObject, error) {
-	var tmp *ValueResult
-	fmt.Println("ValueResult")
+	var val ValueResult
 
-	if err := json.Unmarshal(data, &tmp); err != nil {
-		return nil, err
-	}
-	if tmp.Value != "" {
-		return &ValueResult{Value: tmp.Value}, nil
+	if err := json.Unmarshal(data, &val); err == nil {
+		if val.Value != "" {
+			return ValueResult{Value: val.Value}, nil
+		}
 	}
 	return nil, nil
 }
@@ -76,13 +69,12 @@ func (ValuesResult) isResultObject() {}
 
 // checker for ValueResult
 func matchValuesResult(data json.RawMessage) (ResultObject, error) {
-	var tmp *ValuesResult
+	var val ValuesResult
 
-	if err := json.Unmarshal(data, &tmp); err != nil {
-		return nil, err
-	}
-	if len(tmp.Values) > 0 {
-		return ValuesResult{Values: tmp.Values}, nil
+	if err := json.Unmarshal(data, &val); err == nil {
+		if len(val.Values) > 0 {
+			return ValuesResult{Values: val.Values}, nil
+		}
 	}
 	return nil, nil
 }

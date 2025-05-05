@@ -18,8 +18,8 @@ type SessionID string
 type Signature any
 
 type UbusInterface interface {
-	SessionCallGetter
-	UCICallGetter
+	Session() SessionInterface
+	UCI() UCIInterface
 }
 
 // implements UbusInterface
@@ -54,6 +54,10 @@ type Call struct {
 	Signature Signature
 }
 
+func (uc *Call) AsParams() Params {
+	return Params{uc.SessionID, uc.Path, uc.Procedure, uc.Signature}
+}
+
 func (uc *Call) SetSessionID(id SessionID) {
 	uc.SessionID = id
 }
@@ -72,8 +76,4 @@ func (uc *Call) SetSignature(sig any) {
 		panic(err)
 	}
 	json.Unmarshal(data, &uc.Signature)
-}
-
-func (uc *Call) AsParams() Params {
-	return Params{uc.SessionID, uc.Path, uc.Procedure, uc.Signature}
 }

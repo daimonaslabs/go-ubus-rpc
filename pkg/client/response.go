@@ -2,9 +2,7 @@ package client
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"reflect"
 )
 
 // interface for content within a Response
@@ -17,6 +15,16 @@ type ResultObject interface {
 // Response[1] is always an xResult type (e.g. SessionResult)
 type Response []ResultObject
 
+// return the result of the response as the Go-type that it is
+func GetAs[T ResultObject](r Response) (T, bool) {
+	var zero T
+	if len(r) < 2 {
+		return zero, false
+	}
+	obj, ok := r[1].(T)
+	return obj, ok
+}
+
 // custom UnmarshalJSON for Response
 func (r *Response) UnmarshalJSON(data []byte) error {
 	var raw []json.RawMessage
@@ -28,10 +36,9 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 	for _, item := range raw {
 		var matched bool
 		for _, checker := range resultTypeRegistry {
-			if obj, err := checker(item); err == nil {
+			if obj, err := checker(item); err == nil && obj != nil {
 				*r = append(*r, obj)
 				matched = true
-				fmt.Println(matched, reflect.TypeOf(obj))
 				break
 			}
 		}
@@ -71,7 +78,8 @@ func matchIntWrapper(data json.RawMessage) (ResultObject, error) {
 	if err := json.Unmarshal(data, &val); err == nil {
 		return IntWrapper{Value: val}, nil
 	}
-	return nil, errors.New("not an IntWrapper")
+	//return nil, errors.New("not an IntWrapper")
+	return nil, nil
 }
 
 // response type registry
@@ -83,6 +91,11 @@ func registerResultType(checker resultObjectChecker) {
 	resultTypeRegistry = append(resultTypeRegistry, checker)
 }
 
+// for all matchX funcs:
+//
+//	return (nil, nil) for non-matches
+//	return (obj, nil) for valid matches
+//	only return (nil, err) for broken JSON, which should almost never happen unless data is corrupted
 func init() {
 	registerResultType(matchIntWrapper)
 	registerResultType(matchSessionResult)

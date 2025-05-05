@@ -2,7 +2,6 @@ package client
 
 import (
 	"encoding/json"
-	"errors"
 )
 
 type Session struct {
@@ -23,10 +22,6 @@ type ACL struct {
 
 type Data struct {
 	Username string `json:"username"`
-}
-
-type SessionCallGetter interface {
-	Session() SessionInterface
 }
 
 func newSessionCall(u *UbusRPC) *sessionCall {
@@ -66,10 +61,18 @@ func (SessionResult) isResultObject() {}
 
 // checker for SessionResponse
 func matchSessionResult(data json.RawMessage) (ResultObject, error) {
-	var tmp *Session
+	var val Session
 
-	if err := json.Unmarshal(data, &tmp); err == nil && tmp != nil {
-		return SessionResult{*tmp}, nil
+	if err := json.Unmarshal(data, &val); err == nil {
+		if val.SessionID != "" { // easiest way to see if it unmarshaled into a empty Session struct
+			return SessionResult{val}, nil
+		}
 	}
-	return nil, errors.New("not a SessionResult")
+	return nil, nil
 }
+
+//		if reflect.TypeOf(val.SessionID).Kind() == reflect.Map {
+//			fmt.Println("not a sessionResult!")
+//			return nil, nil
+//		}
+//	}

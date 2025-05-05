@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -41,7 +40,7 @@ func NewUbusRPC(ctx context.Context, opts *ClientOptions) (*UbusRPC, error) {
 	}, err
 }
 
-func (u *UbusRPC) Do(ctx context.Context) (r *Response, err error) {
+func (u *UbusRPC) Do(ctx context.Context) (r Response, err error) {
 	err = u.clientset.rpcClient.CallContext(ctx, &r, "call", u.Call.AsParams()...)
 	return r, err
 }
@@ -73,16 +72,14 @@ func newClientset(ctx context.Context, opts *ClientOptions) (c *clientset, err e
 
 	// initialize ubus client
 	result := Response{}
-	request := login.AsParams()
 	if err != nil {
 		log.Fatalln(err)
 	}
-	err = c.rpcClient.CallContext(ctx, &result, "call", request...)
+	err = c.rpcClient.CallContext(ctx, &result, "call", login.AsParams()...)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	fmt.Println(result)
 	session, ok := result[1].(SessionResult)
 	if !ok {
 		err = errors.New("invalid response to ubus session login")
