@@ -21,8 +21,6 @@ func main() {
 	rpc.Call = rpc.UCI().Get(&uciOpts)
 	response, err := rpc.Do(ctx)
 	fmt.Println(response)
-	code := response[0].(client.IntWrapper)
-	fmt.Println(code.Value)
 	result := rpc.UCI().GetResult(response)
 	fmt.Println(reflect.TypeOf(result), result)
 }
