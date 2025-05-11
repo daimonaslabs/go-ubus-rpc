@@ -5,35 +5,43 @@ import (
 )
 
 func newUCICall(u *UbusRPC) *uciCall {
-	u.uciCall.SetSessionID(u.ubusSession.SessionID)
-	u.uciCall.SetPath("uci")
+	u.uciCall.setSessionID(u.ubusSession.SessionID)
+	u.uciCall.setPath("uci")
 	return &u.uciCall
 }
 
 type UCIInterface interface {
+	GetResult(r Response) UCIResult
 	Configs() CallInterface
 	Get(opts *UCIOptions) CallInterface
 }
 
 // implements UCIInterface
+// implements CallInterface
 type uciCall struct {
 	Call
 }
 
+// TODO do all the type checking stuff in there to return a single one
+func (c *uciCall) GetResult(r Response) UCIResult {
+	return r[1].(UCIResult)
+}
+
 func (c *uciCall) Configs() CallInterface {
-	c.SetProcedure("configs")
-	c.SetSignature(map[string]any{})
+	c.setProcedure("configs")
+	c.setSignature(&UCIOptions{})
 
 	return c
 }
 
 func (c *uciCall) Get(opts *UCIOptions) CallInterface {
-	c.SetProcedure("get")
-	c.SetSignature(opts)
+	c.setProcedure("get")
+	c.setSignature(opts)
 
 	return c
 }
 
+// implements Signature interface
 type UCIOptions struct {
 	Config  string `json:"config,omitempty"`
 	Section string `json:"section,omitempty"`
@@ -41,39 +49,50 @@ type UCIOptions struct {
 	Option  string `json:"option,omitempty"`
 }
 
+func (UCIOptions) isOptsType() {}
+
 // implements ResultObject interface
-type ValueResult struct {
+type UCIResult struct {
+	Values map[string]any `json:"values"` // TODO possibly replace any with a more specific interface
+}
+
+func (UCIResult) isResultObject() {}
+
+// implements ResultObject interface
+// nested type used for JSON parsing
+type valueResult struct {
 	Value string `json:"value"`
 }
 
-func (ValueResult) isResultObject() {}
+func (valueResult) isResultObject() {}
 
-// checker for ValueResult
+// matcher forvalueResult
 func matchValueResult(data json.RawMessage) (ResultObject, error) {
-	var val ValueResult
+	var val valueResult
 
 	if err := json.Unmarshal(data, &val); err == nil {
 		if val.Value != "" {
-			return ValueResult{Value: val.Value}, nil
+			return valueResult{Value: val.Value}, nil
 		}
 	}
 	return nil, nil
 }
 
 // implements ResultObject interface
-type ValuesResult struct {
+// nested type used for JSON parsing
+type valuesResult struct {
 	Values map[string]map[string]any `json:"values"`
 }
 
-func (ValuesResult) isResultObject() {}
+func (valuesResult) isResultObject() {}
 
-// checker for ValueResult
+// matcher for valueResult
 func matchValuesResult(data json.RawMessage) (ResultObject, error) {
-	var val ValuesResult
+	var val valuesResult
 
 	if err := json.Unmarshal(data, &val); err == nil {
 		if len(val.Values) > 0 {
-			return ValuesResult{Values: val.Values}, nil
+			return valuesResult{Values: val.Values}, nil
 		}
 	}
 	return nil, nil

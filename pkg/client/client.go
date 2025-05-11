@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -41,7 +40,7 @@ func NewUbusRPC(ctx context.Context, opts *ClientOptions) (*UbusRPC, error) {
 }
 
 func (u *UbusRPC) Do(ctx context.Context) (r Response, err error) {
-	err = u.clientset.rpcClient.CallContext(ctx, &r, "call", u.Call.AsParams()...)
+	err = u.clientset.rpcClient.CallContext(ctx, &r, "call", u.Call.asParams()...)
 	return r, err
 }
 
@@ -60,30 +59,29 @@ func newClientset(ctx context.Context, opts *ClientOptions) (c *clientset, err e
 		rpcClient:   rpcClient,
 		ubusSession: &Session{},
 	}
-	login := &Call{}
-	login.SetSessionID(LoginSessionID)
-	login.SetPath("session")
-	login.SetProcedure("login")
-	login.SetSignature(LoginOptions{
+	loginOpts := LoginOptions{
 		Username: opts.Username,
 		Password: opts.Password,
 		Timeout:  opts.Timeout,
-	})
+	}
+	login := &Call{}
+	login.setSessionID(LoginSessionID)
+	login.setPath("session")
+	login.setProcedure("login")
+	login.setSignature(loginOpts)
 
 	// initialize ubus client
-	result := Response{}
-	if err != nil {
-		log.Fatalln(err)
-	}
-	err = c.rpcClient.CallContext(ctx, &result, "call", login.AsParams()...)
+	response := Response{}
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	session, ok := result[1].(SessionResult)
-	if !ok {
-		err = errors.New("invalid response to ubus session login")
+	err = c.rpcClient.CallContext(ctx, &response, "call", login.asParams()...)
+	if err != nil {
+		log.Fatalln(err)
 	}
+
+	session := response[1].(SessionResult)
 	c.ubusSession = &session.Session
 	return c, err
 }

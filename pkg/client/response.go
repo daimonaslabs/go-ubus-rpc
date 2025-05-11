@@ -15,16 +15,6 @@ type ResultObject interface {
 // Response[1] is always an xResult type (e.g. SessionResult)
 type Response []ResultObject
 
-// return the result of the response as the Go-type that it is
-func GetAs[T ResultObject](r Response) (T, bool) {
-	var zero T
-	if len(r) < 2 {
-		return zero, false
-	}
-	obj, ok := r[1].(T)
-	return obj, ok
-}
-
 // custom UnmarshalJSON for Response
 func (r *Response) UnmarshalJSON(data []byte) error {
 	var raw []json.RawMessage
@@ -35,8 +25,8 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 
 	for _, item := range raw {
 		var matched bool
-		for _, checker := range resultTypeRegistry {
-			if obj, err := checker(item); err == nil && obj != nil {
+		for _, matcher := range resultObjectMatcherRegistry {
+			if obj, err := matcher(item); err == nil && obj != nil {
 				*r = append(*r, obj)
 				matched = true
 				break
@@ -78,17 +68,17 @@ func matchIntWrapper(data json.RawMessage) (ResultObject, error) {
 	if err := json.Unmarshal(data, &val); err == nil {
 		return IntWrapper{Value: val}, nil
 	}
-	//return nil, errors.New("not an IntWrapper")
+
 	return nil, nil
 }
 
 // response type registry
-type resultObjectChecker func(json.RawMessage) (ResultObject, error)
+type resultObjectMatcher func(json.RawMessage) (ResultObject, error)
 
-var resultTypeRegistry []resultObjectChecker
+var resultObjectMatcherRegistry []resultObjectMatcher
 
-func registerResultType(checker resultObjectChecker) {
-	resultTypeRegistry = append(resultTypeRegistry, checker)
+func registerResultObjectMatcher(checker resultObjectMatcher) {
+	resultObjectMatcherRegistry = append(resultObjectMatcherRegistry, checker)
 }
 
 // for all matchX funcs:
@@ -97,8 +87,8 @@ func registerResultType(checker resultObjectChecker) {
 //	return (obj, nil) for valid matches
 //	only return (nil, err) for broken JSON, which should almost never happen unless data is corrupted
 func init() {
-	registerResultType(matchIntWrapper)
-	registerResultType(matchSessionResult)
-	registerResultType(matchValueResult)
-	registerResultType(matchValuesResult)
+	registerResultObjectMatcher(matchIntWrapper)
+	registerResultObjectMatcher(matchSessionResult)
+	registerResultObjectMatcher(matchValueResult)
+	registerResultObjectMatcher(matchValuesResult)
 }

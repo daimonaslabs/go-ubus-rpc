@@ -15,11 +15,14 @@ const (
 
 type Params []any
 type SessionID string
-type Signature any
 
 type UbusInterface interface {
 	Session() SessionInterface
 	UCI() UCIInterface
+}
+
+type Signature interface {
+	isOptsType()
 }
 
 // implements UbusInterface
@@ -39,14 +42,15 @@ func (u *UbusRPC) UCI() UCIInterface {
 }
 
 type CallInterface interface {
-	AsParams() Params
-	SetSessionID(id SessionID)
-	SetPath(p string)
-	SetProcedure(p string)
-	SetSignature(sig any)
+	asParams() Params
+	setSessionID(id SessionID)
+	setPath(p string)
+	setProcedure(p string)
+	setSignature(sig Signature)
 }
 
 // implements CallInterface
+// implements ResultTypeGetter
 type Call struct {
 	SessionID SessionID
 	Path      string
@@ -54,26 +58,27 @@ type Call struct {
 	Signature Signature
 }
 
-func (uc *Call) AsParams() Params {
+func (uc *Call) asParams() Params {
 	return Params{uc.SessionID, uc.Path, uc.Procedure, uc.Signature}
 }
 
-func (uc *Call) SetSessionID(id SessionID) {
+func (uc *Call) setSessionID(id SessionID) {
 	uc.SessionID = id
 }
 
-func (uc *Call) SetPath(p string) {
+func (uc *Call) setPath(p string) {
 	uc.Path = p
 }
 
-func (uc *Call) SetProcedure(p string) {
+func (uc *Call) setProcedure(p string) {
 	uc.Procedure = p
 }
 
-func (uc *Call) SetSignature(sig any) {
+func (uc *Call) setSignature(sig Signature) {
 	data, err := json.Marshal(sig)
 	if err != nil {
 		panic(err)
 	}
+	uc.Signature = sig
 	json.Unmarshal(data, &uc.Signature)
 }

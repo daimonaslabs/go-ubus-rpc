@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/client"
 )
@@ -16,9 +17,12 @@ func main() {
 		fmt.Println(rpc, err)
 	}
 
-	rpc.Call = rpc.UCI().Get(&client.UCIOptions{Config: "firewall", Section: "cfg04ad58", Option: "src"})
-	fmt.Println("main Call before Do(): ", rpc.Call)
+	uciOpts := client.UCIOptions{Config: "firewall", Section: "cfg04ad58", Option: "src"}
+	rpc.Call = rpc.UCI().Get(&uciOpts)
 	response, err := rpc.Do(ctx)
-	result, _ := client.GetAs[client.ValueResult](response)
-	fmt.Println("main Result after Do(): ", result)
+	fmt.Println(response)
+	code := response[0].(client.IntWrapper)
+	fmt.Println(code.Value)
+	result := rpc.UCI().GetResult(response)
+	fmt.Println(reflect.TypeOf(result), result)
 }

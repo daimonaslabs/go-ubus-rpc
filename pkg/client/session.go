@@ -24,33 +24,42 @@ type Data struct {
 	Username string `json:"username"`
 }
 
-func newSessionCall(u *UbusRPC) *sessionCall {
-	u.sessionCall.SetSessionID(u.ubusSession.SessionID)
-	u.sessionCall.SetPath("session")
-	return &u.sessionCall
-}
-
 type SessionInterface interface {
+	GetResult(r Response) SessionResult
 	Login(opts *LoginOptions) CallInterface
 }
 
 // implements SessionInterface
+// implements CallInterface
 type sessionCall struct {
 	Call
 }
 
+func newSessionCall(u *UbusRPC) *sessionCall {
+	u.sessionCall.setSessionID(u.ubusSession.SessionID)
+	u.sessionCall.setPath("session")
+	return &u.sessionCall
+}
+
+func (c *sessionCall) GetResult(r Response) SessionResult {
+	return r[1].(SessionResult)
+}
+
 func (c *sessionCall) Login(opts *LoginOptions) CallInterface {
-	c.SetProcedure("login")
-	c.SetSignature(opts)
+	c.setProcedure("login")
+	c.setSignature(opts)
 
 	return c
 }
 
+// implements Signature interface
 type LoginOptions struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Timeout  uint   `json:"timeout"`
 }
+
+func (LoginOptions) isOptsType() {}
 
 // implements ResultObject interface
 type SessionResult struct {
@@ -64,15 +73,9 @@ func matchSessionResult(data json.RawMessage) (ResultObject, error) {
 	var val Session
 
 	if err := json.Unmarshal(data, &val); err == nil {
-		if val.SessionID != "" { // easiest way to see if it unmarshaled into a empty Session struct
+		if val.SessionID != "" { // easiest way to see if it unmarshaled into an empty Session struct
 			return SessionResult{val}, nil
 		}
 	}
 	return nil, nil
 }
-
-//		if reflect.TypeOf(val.SessionID).Kind() == reflect.Map {
-//			fmt.Println("not a sessionResult!")
-//			return nil, nil
-//		}
-//	}
