@@ -10,9 +10,14 @@ type ResultObject interface {
 	isResultObject()
 }
 
+type resultStatic struct {
+	Type   string         `json:"type"`
+	Values map[string]any `json:"values"`
+}
+
 // effectively a tuple:
-// Response[0] is always an int (IntWrapper)
-// Response[1] is always an xResult type (e.g. SessionResult)
+// Response[0] is always an int (ExitCode)
+// Response[1] is always an xResult type (e.g. UCIResult)
 type Response []ResultObject
 
 // custom UnmarshalJSON for Response
@@ -55,18 +60,23 @@ func (r Response) MarshalJSON() ([]byte, error) {
 	return json.Marshal(raw)
 }
 
-// used to wrap plain ints
-type IntWrapper struct {
-	Value int
+// implements ResultObject
+// implements builtin.error
+// always the first object of the Response tuple
+type ExitCode int
+
+func (ExitCode) isResultObject() {}
+
+func (e ExitCode) Error() string {
+	return fmt.Sprintf("exit status %d", e)
 }
 
-func (IntWrapper) isResultObject() {}
-
-// checker for IntWrapper
-func matchIntWrapper(data json.RawMessage) (ResultObject, error) {
+// checker for ExitCode
+func matchExitCode(data json.RawMessage) (ResultObject, error) {
 	var val int
+
 	if err := json.Unmarshal(data, &val); err == nil {
-		return IntWrapper{Value: val}, nil
+		return ExitCode(val), nil
 	}
 
 	return nil, nil
@@ -87,8 +97,9 @@ func registerResultObjectMatcher(checker resultObjectMatcher) {
 //	return (obj, nil) for valid matches
 //	only return (nil, err) for broken JSON, which should almost never happen unless data is corrupted
 func init() {
-	registerResultObjectMatcher(matchIntWrapper)
+	registerResultObjectMatcher(matchExitCode)
 	registerResultObjectMatcher(matchSessionResult)
 	registerResultObjectMatcher(matchValueResult)
 	registerResultObjectMatcher(matchValuesResult)
+	registerResultObjectMatcher(matchConfigsResult)
 }

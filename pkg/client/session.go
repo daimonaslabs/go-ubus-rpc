@@ -2,7 +2,10 @@ package client
 
 import (
 	"encoding/json"
+	"errors"
 )
+
+const SessionResultType = "session"
 
 type Session struct {
 	SessionID SessionID `json:"ubus_rpc_session"`
@@ -25,7 +28,7 @@ type Data struct {
 }
 
 type SessionInterface interface {
-	GetResult(r Response) SessionResult
+	GetResult(p Response) (u SessionResult, err error)
 	Login(opts *LoginOptions) CallInterface
 }
 
@@ -41,8 +44,20 @@ func newSessionCall(u *UbusRPC) *sessionCall {
 	return &u.sessionCall
 }
 
-func (c *sessionCall) GetResult(r Response) SessionResult {
-	return r[1].(SessionResult)
+func (c *sessionCall) GetResult(p Response) (u SessionResult, err error) {
+	if len(p) > 1 {
+		data, _ := json.Marshal(p[1])
+		switch p[1].(type) {
+		case sessionResult:
+			u.Type = SessionResultType
+			json.Unmarshal(data, &u.Values)
+			return u, nil
+		default:
+			return SessionResult{}, errors.New("not a SessionResult")
+		}
+	} else { // error
+		return SessionResult{}, errors.New(p[0].(ExitCode).Error())
+	}
 }
 
 func (c *sessionCall) Login(opts *LoginOptions) CallInterface {
@@ -61,12 +76,16 @@ type LoginOptions struct {
 
 func (LoginOptions) isOptsType() {}
 
-// implements ResultObject interface
 type SessionResult struct {
+	resultStatic
+}
+
+// implements ResultObject interface
+type sessionResult struct {
 	Session
 }
 
-func (SessionResult) isResultObject() {}
+func (sessionResult) isResultObject() {}
 
 // checker for SessionResponse
 func matchSessionResult(data json.RawMessage) (ResultObject, error) {
@@ -74,7 +93,7 @@ func matchSessionResult(data json.RawMessage) (ResultObject, error) {
 
 	if err := json.Unmarshal(data, &val); err == nil {
 		if val.SessionID != "" { // easiest way to see if it unmarshaled into an empty Session struct
-			return SessionResult{val}, nil
+			return sessionResult{val}, nil
 		}
 	}
 	return nil, nil

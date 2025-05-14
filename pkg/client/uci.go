@@ -2,6 +2,13 @@ package client
 
 import (
 	"encoding/json"
+	"errors"
+)
+
+const (
+	ConfigsResultType = "configs"
+	ValueResultType   = "value"
+	ValuesResultType  = "values"
 )
 
 func newUCICall(u *UbusRPC) *uciCall {
@@ -11,7 +18,7 @@ func newUCICall(u *UbusRPC) *uciCall {
 }
 
 type UCIInterface interface {
-	GetResult(r Response) UCIResult
+	GetResult(p Response) (u UCIResult, err error)
 	Configs() CallInterface
 	Get(opts *UCIOptions) CallInterface
 }
@@ -22,9 +29,30 @@ type uciCall struct {
 	Call
 }
 
-// TODO do all the type checking stuff in there to return a single one
-func (c *uciCall) GetResult(r Response) UCIResult {
-	return r[1].(UCIResult)
+// TODO could we really just have one Result type (resultStatic?)
+// do all the type checking stuff in here to return a UCIResult type
+func (c *uciCall) GetResult(p Response) (u UCIResult, err error) {
+	if len(p) > 1 {
+		data, _ := json.Marshal(p[1])
+		switch p[1].(type) {
+		case valueResult:
+			u.Type = ValueResultType
+			json.Unmarshal(data, &u.Values)
+			return u, nil
+		case valuesResult:
+			u.Type = ValuesResultType
+			json.Unmarshal(data, &u.Values)
+			return u, nil
+		case configsResult:
+			u.Type = ConfigsResultType
+			json.Unmarshal(data, &u.Values)
+			return u, nil
+		default:
+			return UCIResult{}, errors.New("not a UCIResult")
+		}
+	} else { // error
+		return UCIResult{}, errors.New(p[0].(ExitCode).Error())
+	}
 }
 
 func (c *uciCall) Configs() CallInterface {
@@ -53,15 +81,35 @@ func (UCIOptions) isOptsType() {}
 
 // implements ResultObject interface
 type UCIResult struct {
-	Values map[string]any `json:"values"` // TODO possibly replace any with a more specific interface
+	resultStatic
 }
 
-func (UCIResult) isResultObject() {}
+//func (UCIResult) isResultObject() {}
 
 // implements ResultObject interface
 // nested type used for JSON parsing
 type valueResult struct {
 	Value string `json:"value"`
+}
+
+// implements ResultObject interface
+// nested type used for JSON parsing
+type configsResult struct {
+	Configs []string `json:"configs"`
+}
+
+func (configsResult) isResultObject() {}
+
+// matcher for valueResult
+func matchConfigsResult(data json.RawMessage) (ResultObject, error) {
+	var val configsResult
+
+	if err := json.Unmarshal(data, &val); err == nil {
+		if len(val.Configs) > 0 {
+			return configsResult{Configs: val.Configs}, nil
+		}
+	}
+	return nil, nil
 }
 
 func (valueResult) isResultObject() {}

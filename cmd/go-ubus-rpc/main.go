@@ -17,10 +17,14 @@ func main() {
 		fmt.Println(rpc, err)
 	}
 
-	uciOpts := client.UCIOptions{Config: "firewall", Section: "cfg04ad58", Option: "src"}
-	rpc.Call = rpc.UCI().Get(&uciOpts)
+	//uciOpts := client.UCIOptions{Config: "firewall", Section: "cfg04ad58", Option: "src"}
+	//rpc.Call = rpc.UCI().Get(&uciOpts)
+	//rpc.Call = rpc.UCI().Configs()
+	loginOpts := client.LoginOptions{Username: "root", Password: "D@!monas"}
+	rpc.Call = rpc.Session().Login(&loginOpts)
 	response, err := rpc.Do(ctx)
-	fmt.Println(response)
-	result := rpc.UCI().GetResult(response)
-	fmt.Println(reflect.TypeOf(result), result)
+	fmt.Println(response, err)
+	result, err := rpc.Session().GetResult(response)
+	fmt.Println("result: ", reflect.TypeOf(result), result)
+	fmt.Println("err: ", reflect.TypeOf(err), err)
 }

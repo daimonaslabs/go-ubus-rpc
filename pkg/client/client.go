@@ -81,7 +81,7 @@ func newClientset(ctx context.Context, opts *ClientOptions) (c *clientset, err e
 		log.Fatalln(err)
 	}
 
-	session := response[1].(SessionResult)
+	session := response[1].(sessionResult)
 	c.ubusSession = &session.Session
 	return c, err
 }
