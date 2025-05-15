@@ -3,33 +3,12 @@ package client
 import (
 	"encoding/json"
 	"errors"
+
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/session"
 )
 
-const SessionResultType = "session"
-
-type Session struct {
-	SessionID SessionID `json:"ubus_rpc_session"`
-	Timeout   int       `json:"timeout"`
-	Expires   int       `json:"expires"`
-	ACLs      ACL       `json:"acls"`
-	Data      Data      `json:"data"`
-}
-
-type ACL struct {
-	AccessGroup map[string][]string `json:"access-group"`
-	CGIIO       map[string][]string `json:"cgi-io,omitempty"`
-	File        map[string][]string `json:"file,omitempty"`
-	Ubus        map[string][]string `json:"ubus"`
-	UCI         map[string][]string `json:"uci,omitempty"`
-}
-
-type Data struct {
-	Username string `json:"username"`
-}
-
 type SessionInterface interface {
-	GetResult(p Response) (u SessionResult, err error)
-	Login(opts *LoginOptions) CallInterface
+	Login(opts *SessionLoginOptions) Call
 }
 
 // implements SessionInterface
@@ -39,57 +18,82 @@ type sessionCall struct {
 }
 
 func newSessionCall(u *UbusRPC) *sessionCall {
-	u.sessionCall.setSessionID(u.ubusSession.SessionID)
-	u.sessionCall.setPath("session")
-	return &u.sessionCall
+	u.Call.setPath("session")
+	return &sessionCall{u.Call}
 }
 
-func (c *sessionCall) GetResult(p Response) (u SessionResult, err error) {
-	if len(p) > 1 {
-		data, _ := json.Marshal(p[1])
-		switch p[1].(type) {
-		case sessionResult:
-			u.Type = SessionResultType
-			json.Unmarshal(data, &u.Values)
-			return u, nil
-		default:
-			return SessionResult{}, errors.New("not a SessionResult")
-		}
-	} else { // error
-		return SessionResult{}, errors.New(p[0].(ExitCode).Error())
-	}
-}
-
-func (c *sessionCall) Login(opts *LoginOptions) CallInterface {
+func (c *sessionCall) Login(opts *SessionLoginOptions) Call {
 	c.setProcedure("login")
 	c.setSignature(opts)
 
-	return c
+	return c.Call
 }
 
+/*
+################################################################
+#
+# all xOptions types are in this block. they all implement the
+# Signature interface.
+#
+################################################################
+*/
+
 // implements Signature interface
-type LoginOptions struct {
+type SessionLoginOptions struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Timeout  uint   `json:"timeout"`
 }
 
-func (LoginOptions) isOptsType() {}
+func (SessionLoginOptions) isOptsType() {}
 
-type SessionResult struct {
-	resultStatic
+func (opts SessionLoginOptions) GetResult(p Response) (u LoginResult, err error) {
+	if len(p) > 1 {
+		data, _ := json.Marshal(p[1])
+		switch p[1].(type) {
+		case sessionResult:
+			json.Unmarshal(data, &u)
+		default:
+			return LoginResult{}, errors.New("not a LoginResult")
+		}
+	} else { // error
+		return LoginResult{}, errors.New(p[0].(ExitCode).Error())
+	}
+	return u, nil
+}
+
+/*
+################################################################
+#
+# all xResult types are in this block.
+#
+################################################################
+*/
+
+// result of a `session login` command
+type LoginResult struct {
+	session.Session `json:",inline"`
 }
 
 // implements ResultObject interface
+// used for handling the raw RPC response
 type sessionResult struct {
-	Session
+	session.Session
 }
 
 func (sessionResult) isResultObject() {}
 
-// checker for SessionResponse
+/*
+################################################################
+#
+# all matchXResult funcs are in this block. used in init().
+#
+################################################################
+*/
+
+// checker for sessionResponse
 func matchSessionResult(data json.RawMessage) (ResultObject, error) {
-	var val Session
+	var val session.Session
 
 	if err := json.Unmarshal(data, &val); err == nil {
 		if val.SessionID != "" { // easiest way to see if it unmarshaled into an empty Session struct

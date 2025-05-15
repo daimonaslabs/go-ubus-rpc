@@ -10,11 +10,6 @@ type ResultObject interface {
 	isResultObject()
 }
 
-type resultStatic struct {
-	Type   string         `json:"type"`
-	Values map[string]any `json:"values"`
-}
-
 // effectively a tuple:
 // Response[0] is always an int (ExitCode)
 // Response[1] is always an xResult type (e.g. UCIResult)

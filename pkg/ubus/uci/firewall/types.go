@@ -4,6 +4,15 @@ import (
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
 )
 
+// these are static values for the uci.UCIConfigOptionsStatic.Type field
+const (
+	DefaultsType   = "defaults"
+	ForwardingType = "forwarding"
+	RedirectType   = "redirect"
+	RuleType       = "rule"
+	ZoneType       = "zone"
+)
+
 // Used by RuleSection.ICMPType
 var ICMPTypes = []string{
 	"address-mask-reply",
@@ -96,6 +105,8 @@ type DefaultsSection struct {
 	TCPWindowScaling uci.StringBool `json:"tcp_window_scaling,omitempty"`
 }
 
+func (DefaultsSection) isUCIConfigSection() {}
+
 func (in *DefaultsSection) DeepCopyInto(out *DefaultsSection) {
 	*out = *in
 }
@@ -117,6 +128,8 @@ type ForwardingSection struct {
 	// usually is 'wan'.
 	Src string `json:"src,omitempty"`
 }
+
+func (ForwardingSection) isUCIConfigSection() {}
 
 func (in *ForwardingSection) DeepCopyInto(out *ForwardingSection) {
 	*out = *in
@@ -202,6 +215,8 @@ type RedirectSection struct {
 	UTCTime uci.StringBool `json:"utc_time,omitempty"`
 }
 
+func (RedirectSection) isUCIConfigSection() {}
+
 func (in *RedirectSection) DeepCopyInto(out *RedirectSection) {
 	*out = *in
 }
@@ -286,6 +301,8 @@ type RuleSection struct {
 	Weekdays uci.Time `json:"weekdays,omitempty"`
 }
 
+func (RuleSection) isUCIConfigSection() {}
+
 func (in *RuleSection) DeepCopyInto(out *RuleSection) {
 	*out = *in
 }
@@ -342,6 +359,8 @@ type ZoneSection struct {
 	// List of IP subnets attached to this zone.
 	Subnet []string `json:"subnet,omitempty"`
 }
+
+func (ZoneSection) isUCIConfigSection() {}
 
 func (in *ZoneSection) DeepCopyInto(out *ZoneSection) {
 	*out = *in

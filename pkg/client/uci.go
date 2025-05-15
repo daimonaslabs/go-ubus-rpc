@@ -3,24 +3,13 @@ package client
 import (
 	"encoding/json"
 	"errors"
-)
 
-const (
-	ConfigsResultType = "configs"
-	ValueResultType   = "value"
-	ValuesResultType  = "values"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
 )
-
-func newUCICall(u *UbusRPC) *uciCall {
-	u.uciCall.setSessionID(u.ubusSession.SessionID)
-	u.uciCall.setPath("uci")
-	return &u.uciCall
-}
 
 type UCIInterface interface {
-	GetResult(p Response) (u UCIResult, err error)
-	Configs() CallInterface
-	Get(opts *UCIOptions) CallInterface
+	Configs() Call
+	Get(opts *UCIGetOptions) Call
 }
 
 // implements UCIInterface
@@ -29,78 +18,133 @@ type uciCall struct {
 	Call
 }
 
-// TODO could we really just have one Result type (resultStatic?)
-// do all the type checking stuff in here to return a UCIResult type
-func (c *uciCall) GetResult(p Response) (u UCIResult, err error) {
-	if len(p) > 1 {
-		data, _ := json.Marshal(p[1])
-		switch p[1].(type) {
-		case valueResult:
-			u.Type = ValueResultType
-			json.Unmarshal(data, &u.Values)
-			return u, nil
-		case valuesResult:
-			u.Type = ValuesResultType
-			json.Unmarshal(data, &u.Values)
-			return u, nil
-		case configsResult:
-			u.Type = ConfigsResultType
-			json.Unmarshal(data, &u.Values)
-			return u, nil
-		default:
-			return UCIResult{}, errors.New("not a UCIResult")
-		}
-	} else { // error
-		return UCIResult{}, errors.New(p[0].(ExitCode).Error())
-	}
+func newUCICall(u *UbusRPC) *uciCall {
+	u.Call.setPath("uci")
+	return &uciCall{u.Call}
 }
 
-func (c *uciCall) Configs() CallInterface {
+func (c *uciCall) Configs() Call {
 	c.setProcedure("configs")
-	c.setSignature(&UCIOptions{})
+	c.setSignature(&UCIGetOptions{})
 
-	return c
+	return c.Call
 }
 
-func (c *uciCall) Get(opts *UCIOptions) CallInterface {
+func (c *uciCall) Get(opts *UCIGetOptions) Call {
 	c.setProcedure("get")
 	c.setSignature(opts)
 
-	return c
+	return c.Call
+}
+
+/*
+################################################################
+#
+# all xOptions types are in this block. they all implement the
+# Signature interface.
+#
+################################################################
+*/
+
+// implements Signature interface
+type UCIConfigsOptions struct{}
+
+func (UCIConfigsOptions) isOptsType() {}
+
+func (opts UCIConfigsOptions) GetResult(p Response) (u UCIConfigsResult, err error) {
+	if len(p) > 1 {
+		data, _ := json.Marshal(p[1])
+		switch p[1].(type) {
+		case configsResult:
+			err = json.Unmarshal(data, &u)
+		default:
+			return UCIConfigsResult{}, errors.New("not a ConfigsResult")
+		}
+	} else { // error
+		return UCIConfigsResult{}, errors.New(p[0].(ExitCode).Error())
+	}
+	return u, err
 }
 
 // implements Signature interface
-type UCIOptions struct {
+type UCIGetOptions struct {
 	Config  string `json:"config,omitempty"`
 	Section string `json:"section,omitempty"`
 	Type    string `json:"type,omitempty"`
 	Option  string `json:"option,omitempty"`
 }
 
-func (UCIOptions) isOptsType() {}
+func (UCIGetOptions) isOptsType() {}
 
-// implements ResultObject interface
-type UCIResult struct {
-	resultStatic
+func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
+	if len(p) > 1 {
+		data, _ := json.Marshal(p[1])
+		switch obj := p[1].(type) {
+		case valueResult:
+			u.Option = map[string]string{opts.Option: obj.Value}
+		case valuesResult:
+			err = json.Unmarshal(data, &u.SectionArray) // TODO need more custom unmarshalling since SectionArray is an interface
+		default:
+			return UCIGetResult{}, errors.New("not a GetResult")
+		}
+	} else { // error
+		return UCIGetResult{}, errors.New(p[0].(ExitCode).Error())
+	}
+	return u, err
 }
 
-//func (UCIResult) isResultObject() {}
+/*
+################################################################
+#
+# all xResult types are in this block.
+#
+################################################################
+*/
 
-// implements ResultObject interface
-// nested type used for JSON parsing
-type valueResult struct {
-	Value string `json:"value"`
+// result of a `uci configs` command
+type UCIConfigsResult struct {
+	Configs []string `json:"configs,omitempty"`
+}
+
+// result of a `uci get` command
+type UCIGetResult struct {
+	SectionArray map[string]uci.UCIConfigSection `json:"sectionArray,omitempty"`
+	Option       map[string]string               `json:"option,omitempty"`
 }
 
 // implements ResultObject interface
-// nested type used for JSON parsing
+// used for handling the raw RPC response
 type configsResult struct {
 	Configs []string `json:"configs"`
 }
 
 func (configsResult) isResultObject() {}
 
-// matcher for valueResult
+// implements ResultObject interface
+// used for handling the raw RPC response
+type valueResult struct {
+	Value string `json:"value"`
+}
+
+func (valueResult) isResultObject() {}
+
+// implements ResultObject interface
+// used for handling the raw RPC response
+type valuesResult struct {
+	Values map[string]map[string]any `json:"values"`
+}
+
+func (valuesResult) isResultObject() {}
+
+/*
+################################################################
+#
+# all matchXResult funcs are in this block. used in init().
+#
+################################################################
+*/
+
+// matcher for configsResult
 func matchConfigsResult(data json.RawMessage) (ResultObject, error) {
 	var val configsResult
 
@@ -112,9 +156,7 @@ func matchConfigsResult(data json.RawMessage) (ResultObject, error) {
 	return nil, nil
 }
 
-func (valueResult) isResultObject() {}
-
-// matcher forvalueResult
+// matcher for valueResult
 func matchValueResult(data json.RawMessage) (ResultObject, error) {
 	var val valueResult
 
@@ -126,15 +168,7 @@ func matchValueResult(data json.RawMessage) (ResultObject, error) {
 	return nil, nil
 }
 
-// implements ResultObject interface
-// nested type used for JSON parsing
-type valuesResult struct {
-	Values map[string]map[string]any `json:"values"`
-}
-
-func (valuesResult) isResultObject() {}
-
-// matcher for valueResult
+// matcher for valuesResult
 func matchValuesResult(data json.RawMessage) (ResultObject, error) {
 	var val valuesResult
 

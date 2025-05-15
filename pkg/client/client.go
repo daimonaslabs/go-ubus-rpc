@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/session"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -22,19 +23,31 @@ import (
 
 type clientset struct {
 	rpcClient   *rpc.Client
-	ubusSession *Session
+	ubusSession *session.Session
 }
 
-type ClientOptions struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Timeout  uint   `json:"timeout"`
-	URL      string `json:"url"`
+// implements UbusInterface
+type UbusRPC struct {
+	Call Call
+	*clientset
+	sessionCall
+	uciCall
+}
+
+func (u *UbusRPC) Session() SessionInterface {
+	return newSessionCall(u)
+}
+
+func (u *UbusRPC) UCI() UCIInterface {
+	return newUCICall(u)
 }
 
 func NewUbusRPC(ctx context.Context, opts *ClientOptions) (*UbusRPC, error) {
 	c, err := newClientset(ctx, opts)
 	return &UbusRPC{
+		Call: Call{
+			SessionID: c.ubusSession.SessionID,
+		},
 		clientset: c,
 	}, err
 }
@@ -42,6 +55,13 @@ func NewUbusRPC(ctx context.Context, opts *ClientOptions) (*UbusRPC, error) {
 func (u *UbusRPC) Do(ctx context.Context) (r Response, err error) {
 	err = u.clientset.rpcClient.CallContext(ctx, &r, "call", u.Call.asParams()...)
 	return r, err
+}
+
+type ClientOptions struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Timeout  uint   `json:"timeout"`
+	URL      string `json:"url"`
 }
 
 func newClientset(ctx context.Context, opts *ClientOptions) (c *clientset, err error) {
@@ -57,15 +77,15 @@ func newClientset(ctx context.Context, opts *ClientOptions) (c *clientset, err e
 
 	c = &clientset{
 		rpcClient:   rpcClient,
-		ubusSession: &Session{},
+		ubusSession: &session.Session{},
 	}
-	loginOpts := LoginOptions{
+	loginOpts := SessionLoginOptions{
 		Username: opts.Username,
 		Password: opts.Password,
 		Timeout:  opts.Timeout,
 	}
 	login := &Call{}
-	login.setSessionID(LoginSessionID)
+	login.setSessionID(session.LoginSessionID)
 	login.setPath("session")
 	login.setProcedure("login")
 	login.setSignature(loginOpts)

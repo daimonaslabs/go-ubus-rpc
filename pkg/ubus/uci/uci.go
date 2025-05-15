@@ -1,5 +1,9 @@
 package uci
 
+type UCIConfigSection interface {
+	isUCIConfigSection()
+}
+
 type UCIConfigOptionsStatic struct {
 	Anonymous bool   `json:".anonymous"`
 	Type      string `json:".type"`

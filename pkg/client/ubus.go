@@ -2,48 +2,25 @@ package client
 
 import (
 	"encoding/json"
-)
 
-const (
-	LoginSessionID         SessionID = "00000000000000000000000000000000"
-	DefaultSessionTimeout  uint      = 300
-	NoExpirySessionTimeout uint      = 0
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/session"
 )
-
-// maybe use this to do validation on the SessionID
-//type sessionID [32]byte
 
 type Params []any
-type SessionID string
 
 type UbusInterface interface {
 	Session() SessionInterface
 	UCI() UCIInterface
 }
 
+// all implementations have an implicit method of GetResult(Response) (xResult, error)
 type Signature interface {
 	isOptsType()
 }
 
-// implements UbusInterface
-type UbusRPC struct {
-	Call CallInterface
-	*clientset
-	sessionCall
-	uciCall
-}
-
-func (u *UbusRPC) Session() SessionInterface {
-	return newSessionCall(u)
-}
-
-func (u *UbusRPC) UCI() UCIInterface {
-	return newUCICall(u)
-}
-
 type CallInterface interface {
-	asParams() Params
-	setSessionID(id SessionID)
+	AsParams() Params
+	setSessionID(id session.SessionID)
 	setPath(p string)
 	setProcedure(p string)
 	setSignature(sig Signature)
@@ -52,7 +29,7 @@ type CallInterface interface {
 // implements CallInterface
 // implements ResultTypeGetter
 type Call struct {
-	SessionID SessionID
+	SessionID session.SessionID
 	Path      string
 	Procedure string
 	Signature Signature
@@ -62,7 +39,7 @@ func (uc *Call) asParams() Params {
 	return Params{uc.SessionID, uc.Path, uc.Procedure, uc.Signature}
 }
 
-func (uc *Call) setSessionID(id SessionID) {
+func (uc *Call) setSessionID(id session.SessionID) {
 	uc.SessionID = id
 }
 
