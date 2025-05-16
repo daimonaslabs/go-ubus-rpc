@@ -17,16 +17,19 @@ func main() {
 	if err != nil {
 		fmt.Println(rpc, err)
 	}
-
-	uciGetOpts := client.UCIGetOptions{Config: "firewall", Section: "cfg04ad58"}
-	rpc.Call = rpc.UCI().Get(&uciGetOpts)
+	uciGetOpts := client.UCIGetOptions{Config: "firewall", Section: "cfg04ad58", Option: "src"}
+	rpc.Call = rpc.UCI().Get(uciGetOpts)
 	//sessionLoginOpts := client.SessionLoginOptions{Username: "root", Password: "D@!monas"}
 	//rpc.Call = rpc.Session().Login(&sessionLoginOpts)
 	//rpc.Call = rpc.UCI().Configs()
 	response, err := rpc.Do(ctx)
+	if err != nil {
+		fmt.Println(err)
+	}
 	result, err := uciGetOpts.GetResult(response)
 	//result, err := sessionLoginOpts.GetResult(response)
 	//result, err := client.UCIConfigsOptions{}.GetResult(response)
+	fmt.Println("response: ", response)
 	fmt.Println("result: ", reflect.TypeOf(result), result)
 	fmt.Println("err: ", reflect.TypeOf(err), err)
 }

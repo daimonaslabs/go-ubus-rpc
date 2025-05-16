@@ -10,6 +10,7 @@ type ResultObject interface {
 	isResultObject()
 }
 
+// implements json.Marshaler and json.Unmarshaler
 // effectively a tuple:
 // Response[0] is always an int (ExitCode)
 // Response[1] is always an xResult type (e.g. UCIResult)
@@ -17,17 +18,20 @@ type Response []ResultObject
 
 // custom UnmarshalJSON for Response
 func (r *Response) UnmarshalJSON(data []byte) error {
+	var rawLen, matches int
 	var raw []json.RawMessage
 
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
+	rawLen = len(raw)
 
 	for _, item := range raw {
 		var matched bool
 		for _, matcher := range resultObjectMatcherRegistry {
 			if obj, err := matcher(item); err == nil && obj != nil {
 				*r = append(*r, obj)
+				matches += 1
 				matched = true
 				break
 			}
@@ -35,6 +39,10 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 		if !matched {
 			return fmt.Errorf("unknown result object: %s", string(item))
 		}
+	}
+
+	if matches != rawLen {
+		return fmt.Errorf("error parsing Response object")
 	}
 
 	return nil
@@ -60,7 +68,7 @@ func (r Response) MarshalJSON() ([]byte, error) {
 // always the first object of the Response tuple
 type ExitCode int
 
-func (ExitCode) isResultObject() {}
+func (e ExitCode) isResultObject() {}
 
 func (e ExitCode) Error() string {
 	return fmt.Sprintf("exit status %d", e)
@@ -68,7 +76,7 @@ func (e ExitCode) Error() string {
 
 // checker for ExitCode
 func matchExitCode(data json.RawMessage) (ResultObject, error) {
-	var val int
+	var val ExitCode
 
 	if err := json.Unmarshal(data, &val); err == nil {
 		return ExitCode(val), nil
@@ -97,4 +105,5 @@ func init() {
 	registerResultObjectMatcher(matchValueResult)
 	registerResultObjectMatcher(matchValuesResult)
 	registerResultObjectMatcher(matchConfigsResult)
+	registerResultObjectMatcher(matchSingleValuesResult)
 }

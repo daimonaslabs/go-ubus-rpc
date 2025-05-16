@@ -8,7 +8,7 @@ import (
 )
 
 type SessionInterface interface {
-	Login(opts *SessionLoginOptions) Call
+	Login(opts SessionLoginOptions) Call
 }
 
 // implements SessionInterface
@@ -22,7 +22,7 @@ func newSessionCall(u *UbusRPC) *sessionCall {
 	return &sessionCall{u.Call}
 }
 
-func (c *sessionCall) Login(opts *SessionLoginOptions) Call {
+func (c *sessionCall) Login(opts SessionLoginOptions) Call {
 	c.setProcedure("login")
 	c.setSignature(opts)
 
