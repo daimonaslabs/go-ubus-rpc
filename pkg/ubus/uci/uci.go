@@ -15,6 +15,10 @@ var (
 		"wireless"}
 )
 
+// TODO add some kind of Lister interface for values such as firewall.RuleSection.ICMPTypes
+// with custom JSON marshaling because ICMPTypes returns a string if there's only one value
+// and a list if there's more. take up your cross and bear it.
+
 type UCIConfigSection interface {
 	IsAnonymous() bool
 	GetType() string

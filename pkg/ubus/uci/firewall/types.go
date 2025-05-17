@@ -18,6 +18,7 @@ var ICMPTypes = []string{
 	"address-mask-reply",
 	"address-mask-request",
 	"any",
+	"bad-header",
 	"communication-prohibited",
 	"destination-unreachable",
 	"echo-reply",
@@ -29,10 +30,12 @@ var ICMPTypes = []string{
 	"host-unknown",
 	"host-unreachable",
 	"ip-header-bad",
+	"neighbour-advertisement",
 	"network-prohibited",
 	"network-redirect",
 	"network-unknown",
 	"network-unreachable",
+	"packet-too-big",
 	"parameter-problem",
 	"ping",
 	"pong",
@@ -55,6 +58,7 @@ var ICMPTypes = []string{
 	"ttl-exceeded",
 	"ttl-zero-during-reassembly",
 	"ttl-zero-during-transit",
+	"unknown-header-type",
 }
 
 type DefaultsSection struct {
@@ -345,7 +349,7 @@ type ZoneSection struct {
 	// List of interfaces attached to this zone. If omitted and neither extra* options, subnets nor devices are given,
 	// the value of name is used by default. Alias interfaces defined in the network config cannot be used as valid
 	// 'standalone' networks. Use list syntax.
-	Network string `json:"network,omitempty"`
+	Network []string `json:"network,omitempty"`
 	// Policy (ACCEPT, REJECT, DROP) for outgoing zone traffic.
 	Output string `json:"output,omitempty"`
 	// List of IP subnets attached to this zone.

@@ -89,7 +89,6 @@ func newClientset(ctx context.Context, opts *ClientOptions) (c *clientset, err e
 	login.setPath("session")
 	login.setProcedure("login")
 	login.setSignature(loginOpts)
-	//setSignature[SessionLoginOptions](login, loginOpts)
 
 	// initialize ubus client
 	response := Response{}

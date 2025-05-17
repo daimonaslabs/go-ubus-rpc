@@ -79,7 +79,7 @@ func matchExitCode(data json.RawMessage) (ResultObject, error) {
 	var val ExitCode
 
 	if err := json.Unmarshal(data, &val); err == nil {
-		return ExitCode(val), nil
+		return val, nil
 	}
 
 	return nil, nil
@@ -105,5 +105,5 @@ func init() {
 	registerResultObjectMatcher(matchValueResult)
 	registerResultObjectMatcher(matchValuesResult)
 	registerResultObjectMatcher(matchConfigsResult)
-	registerResultObjectMatcher(matchSingleValuesResult)
+	//registerResultObjectMatcher(matchSingleValuesResult)
 }

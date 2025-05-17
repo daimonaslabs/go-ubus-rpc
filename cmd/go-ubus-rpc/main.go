@@ -17,7 +17,7 @@ func main() {
 	if err != nil {
 		fmt.Println(rpc, err)
 	}
-	uciGetOpts := client.UCIGetOptions{Config: "firewall", Section: "cfg04ad58", Option: "src"}
+	uciGetOpts := client.UCIGetOptions{Config: "firewall"} //, Section: "cfg04ad58", Option: "src"}
 	rpc.Call = rpc.UCI().Get(uciGetOpts)
 	//sessionLoginOpts := client.SessionLoginOptions{Username: "root", Password: "D@!monas"}
 	//rpc.Call = rpc.Session().Login(&sessionLoginOpts)
