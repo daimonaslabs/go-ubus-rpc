@@ -16,7 +16,6 @@ type UCIInterface interface {
 }
 
 // implements UCIInterface
-// implements CallInterface
 type uciCall struct {
 	Call
 }
@@ -82,70 +81,6 @@ func unmarshalRawSection(data []byte) (section uci.UCIConfigSection, err error) 
 	fmt.Println("IN unmarshalRawSection: ", section)
 	return section, err
 }
-
-//func unmarshalRawSectionArray(data []byte) (sections []uci.UCIConfigSection, err error) {
-//	//var probe struct {
-//	//	Type string `json:".type"`
-//	//}
-//	var rawMap map[string]json.RawMessage
-//	if err = json.Unmarshal(data, &rawMap); err != nil {
-//		return nil, err
-//	}
-//
-//	fmt.Println("IN unmarshalRawSectionArray1 : ", string(data), rawMap, err)
-//
-//	for key, raw := range rawMap {
-//		section, err := unmarshalRawSection(raw)
-//		fmt.Println("IN unmarshalRawSectionArray2 : ", key, string(raw), section, err)
-//
-//		if err != nil {
-//			return nil, err
-//		}
-//
-//		sections = append(sections, section)
-//
-//		//if err = json.Unmarshal(raw, &probe); err != nil {
-//		//	return nil, err
-//		//}
-//
-//		//switch probe.Type {
-//		//case firewall.DefaultsType:
-//		//	var s firewall.DefaultsSection
-//		//	if err = json.Unmarshal(raw, &s); err != nil {
-//		//		return nil, err
-//		//	}
-//		//	section = s
-//		//case firewall.ForwardingType:
-//		//	var s firewall.ForwardingSection
-//		//	if err = json.Unmarshal(raw, &s); err != nil {
-//		//		return nil, err
-//		//	}
-//		//	section = s
-//		//case firewall.RedirectType:
-//		//	var s firewall.RedirectSection
-//		//	if err = json.Unmarshal(raw, &s); err != nil {
-//		//		return nil, err
-//		//	}
-//		//	section = s
-//		//case firewall.RuleType:
-//		//	var s firewall.RuleSection
-//		//	if err = json.Unmarshal(raw, &s); err != nil {
-//		//		return nil, err
-//		//	}
-//		//	section = s
-//		//case firewall.ZoneType:
-//		//	var s firewall.ZoneSection
-//		//	if err = json.Unmarshal(raw, &s); err != nil {
-//		//		return nil, err
-//		//	}
-//		//	section = s
-//		//default:
-//		//	return nil, errors.New("invalid config section")
-//		//}
-//		//sections = append(sections, section)
-//	}
-//	return sections, nil
-//}
 
 /*
 ################################################################
@@ -251,10 +186,6 @@ type valueResult struct {
 
 func (valueResult) isResultObject() {}
 
-// TODO make valuesResult implement json.(Un)Marshaler, call in
-// unmarshalRawSection, change matchX funcs to check if the JSON
-// has the correct top level key
-
 // implements ResultObject interface
 // used for handling the raw RPC response
 //
@@ -277,6 +208,7 @@ func (valueResult) isResultObject() {}
 //	}
 //
 // and:
+//
 // {
 //
 //	    "values": {
@@ -411,6 +343,7 @@ func matchValuesResult(data json.RawMessage) (ResultObject, error) {
 	var val valuesResult
 
 	if err := json.Unmarshal(data, &val); err == nil {
+		fmt.Println("IN matchValuesResult: unmarshal: ", val)
 		if len(val.Values) > 0 {
 			return val, nil
 		}

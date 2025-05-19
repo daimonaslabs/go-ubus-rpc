@@ -240,7 +240,7 @@ type RuleSection struct {
 	Helper string `json:"helper,omitempty"`
 	// For protocol icmp select specific ICMP types to match. Values can be either exact ICMP type numbers or type
 	// names (see ICMPTypes var).
-	ICMPType []string `json:"icmp_type,omitempty"`
+	ICMPType uci.DynamicList `json:"icmp_type,omitempty"`
 	// If specified, match traffic against the given ipset. The match can be inverted by prefixing the value with an
 	// exclamation mark. You can specify the direction as 'setname src' or 'setname dest'. The default if neither src
 	// nor dest are added is to assume src.

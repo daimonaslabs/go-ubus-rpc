@@ -12,7 +12,6 @@ type SessionInterface interface {
 }
 
 // implements SessionInterface
-// implements CallInterface
 type sessionCall struct {
 	Call
 }

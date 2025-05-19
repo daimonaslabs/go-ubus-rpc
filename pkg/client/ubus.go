@@ -8,26 +8,12 @@ import (
 
 type Params []any
 
-//type UbusInterface interface {
-//	Session() SessionInterface
-//	UCI() UCIInterface
-//}
-
 // all implementations have an implicit method of GetResult(Response) (xResult, error)
 type Signature interface {
 	isOptsType()
 }
 
-//type CallInterface interface {
-//	asParams() Params
-//	setSessionID(id session.SessionID)
-//	setPath(p string)
-//	setProcedure(p string)
-//	setSignature(sig Signature)
-//}
-
-// implements CallInterface
-// implements ResultTypeGetter
+// implements Signature
 type Call struct {
 	SessionID session.SessionID
 	Path      string

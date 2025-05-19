@@ -1,5 +1,10 @@
 package uci
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 var (
 	Configs = []string{
 		"dhcp",
@@ -14,10 +19,6 @@ var (
 		"uhttpd",
 		"wireless"}
 )
-
-// TODO add some kind of Lister interface for values such as firewall.RuleSection.ICMPTypes
-// with custom JSON marshaling because ICMPTypes returns a string if there's only one value
-// and a list if there's more. take up your cross and bear it.
 
 type UCIConfigSection interface {
 	IsAnonymous() bool
@@ -49,6 +50,36 @@ func (s UCIConfigOptionsStatic) GetName() string {
 
 func (s UCIConfigOptionsStatic) GetIndex() int {
 	return s.Index
+}
+
+type DynamicList []string
+
+// UnmarshalJSON allows dynamicList to accept either a single string or a list of strings.
+func (d *DynamicList) UnmarshalJSON(data []byte) error {
+	// try unmarshaling as a slice of strings first
+	var list []string
+	if err := json.Unmarshal(data, &list); err == nil {
+		*d = DynamicList(list)
+		return nil
+	}
+
+	// try unmarshaling as a single string
+	var single string
+	if err := json.Unmarshal(data, &single); err == nil {
+		*d = DynamicList{single}
+		return nil
+	}
+
+	// if neither works, return an error
+	return fmt.Errorf("dynamicList: unsupported JSON value: %s", string(data))
+}
+
+// MarshalJSON outputs as a string if there's one item, or a list if multiple
+func (d DynamicList) MarshalJSON() ([]byte, error) {
+	if len(d) == 1 {
+		return json.Marshal(d[0])
+	}
+	return json.Marshal([]string(d))
 }
 
 var StringBoolFalse = "0"

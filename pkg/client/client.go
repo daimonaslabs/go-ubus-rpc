@@ -43,6 +43,7 @@ func (u *UbusRPC) UCI() UCIInterface {
 }
 
 func NewUbusRPC(ctx context.Context, opts *ClientOptions) (*UbusRPC, error) {
+	initResultObjectMatcherRegistry()
 	c, err := newClientset(ctx, opts)
 	return &UbusRPC{
 		Call: Call{
