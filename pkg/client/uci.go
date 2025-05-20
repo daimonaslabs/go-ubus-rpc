@@ -79,7 +79,6 @@ func (UCIGetOptions) isOptsType() {}
 
 func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 	if len(p) > 1 {
-		//data, _ := json.Marshal(p[1])
 		switch obj := p[1].(type) {
 		case valueResult:
 			u.Option = map[string]string{opts.Option: obj.Value}

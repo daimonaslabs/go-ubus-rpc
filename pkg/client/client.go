@@ -15,6 +15,7 @@ type clientset struct {
 	ubusSession *session.Session
 }
 
+// the primary client and caller object
 type UbusRPC struct {
 	Call
 	*clientset
