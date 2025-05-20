@@ -17,20 +17,22 @@ func main() {
 	if err != nil {
 		fmt.Println(rpc, err)
 	}
-	uciGetOpts := client.UCIGetOptions{Config: "firewall", Section: "cfg04ad58"} //, Option: "src"}
-
-	rpc.Call = rpc.UCI().Get(uciGetOpts)
+	//uciGetOpts := client.UCIGetOptions{Config: "firewall", Section: "cfg04ad58", Option: "src"}
 	//sessionLoginOpts := client.SessionLoginOptions{Username: "root", Password: "D@!monas"}
 	//rpc.Call = rpc.Session().Login(&sessionLoginOpts)
 	//rpc.Call = rpc.UCI().Configs()
-	response, err := rpc.Do(ctx)
+	response, err := rpc.UCI().Configs(ctx)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("main1: ", err)
 	}
-	result, err := uciGetOpts.GetResult(response)
+	result, err := client.UCIConfigsOptions{}.GetResult(response)
 	//result, err := sessionLoginOpts.GetResult(response)
 	//result, err := client.UCIConfigsOptions{}.GetResult(response)
 	fmt.Println("response: ", response)
-	fmt.Println("result: ", reflect.TypeOf(result), result)
+	fmt.Println("result: ", result)
+	//fmt.Println("result: ", reflect.TypeOf(result), result.SectionArray)
+	//	for i, s := range result.SectionArray {
+	//fmt.Println("Go index: ", i, " ubus index: ", s.GetIndex())
+	//}
 	fmt.Println("err: ", reflect.TypeOf(err), err)
 }

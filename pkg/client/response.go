@@ -6,6 +6,7 @@ import (
 )
 
 // interface for content within a Response
+// all ResultObjects must also have their own match function
 type ResultObject interface {
 	isResultObject()
 }
@@ -18,33 +19,31 @@ type Response []ResultObject
 
 // custom UnmarshalJSON for Response
 func (r *Response) UnmarshalJSON(data []byte) error {
-	var matched bool
 	var rawLen, matches int
 	var raw []json.RawMessage
 
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
+
 	rawLen = len(raw)
 
 	for _, item := range raw {
+		var matched bool
 		for _, matcher := range resultObjectMatcherRegistry {
 			if obj, err := matcher(item); err == nil && obj != nil {
 				*r = append(*r, obj)
 				matches += 1
 				matched = true
-				fmt.Println(matches, matched)
 				break
 			}
 		}
-		fmt.Println(r)
 		if !matched {
 			return fmt.Errorf("unknown result object: %s", string(item))
 		}
 	}
 
 	if matches != rawLen {
-		fmt.Println(matches, rawLen)
 		return fmt.Errorf("error parsing Response object")
 	}
 
@@ -102,7 +101,7 @@ func registerResultObjectMatcher(checker resultObjectMatcher) {
 //	return (nil, nil) for non-matches
 //	return (obj, nil) for valid matches
 //	only return (nil, err) for broken JSON, which should almost never happen unless data is corrupted
-func initResultObjectMatcherRegistry() {
+func init() {
 	registerResultObjectMatcher(matchExitCode)
 	registerResultObjectMatcher(matchSessionResult)
 	registerResultObjectMatcher(matchValueResult)

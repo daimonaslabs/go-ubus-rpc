@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 
@@ -8,24 +9,24 @@ import (
 )
 
 type SessionInterface interface {
-	Login(opts SessionLoginOptions) Call
+	Login(ctx context.Context, opts SessionLoginOptions) (r Response, err error)
 }
 
 // implements SessionInterface
-type sessionCall struct {
-	Call
+type sessionRPC struct {
+	*UbusRPC
 }
 
-func newSessionCall(u *UbusRPC) *sessionCall {
+func newSessionRPC(u *UbusRPC) *sessionRPC {
 	u.Call.setPath("session")
-	return &sessionCall{u.Call}
+	return &sessionRPC{u}
 }
 
-func (c *sessionCall) Login(opts SessionLoginOptions) Call {
+func (c *sessionRPC) Login(ctx context.Context, opts SessionLoginOptions) (Response, error) {
 	c.setProcedure("login")
 	c.setSignature(opts)
 
-	return c.Call
+	return c.do(ctx)
 }
 
 /*

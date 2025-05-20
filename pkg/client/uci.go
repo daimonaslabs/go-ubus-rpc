@@ -1,85 +1,41 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"strings"
 
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
 )
 
 type UCIInterface interface {
-	Configs() Call
-	Get(opts UCIGetOptions) Call
+	Configs(ctx context.Context) (r Response, err error)
+	Get(ctx context.Context, opts UCIGetOptions) (r Response, err error)
 }
 
 // implements UCIInterface
-type uciCall struct {
-	Call
+type uciRPC struct {
+	*UbusRPC
 }
 
-func newUCICall(u *UbusRPC) *uciCall {
+func newUCIRPC(u *UbusRPC) *uciRPC {
 	u.Call.setPath("uci")
-	return &uciCall{u.Call}
+	return &uciRPC{u}
 }
 
-func (c *uciCall) Configs() Call {
+func (c *uciRPC) Configs(ctx context.Context) (Response, error) {
 	c.setProcedure("configs")
 	c.setSignature(UCIConfigsOptions{})
 
-	return c.Call
+	return c.do(ctx)
 }
 
-func (c *uciCall) Get(opts UCIGetOptions) Call {
+func (c *uciRPC) Get(ctx context.Context, opts UCIGetOptions) (Response, error) {
 	c.setProcedure("get")
 	c.setSignature(opts)
 
-	return c.Call
-}
-
-func unmarshalRawResult[S uci.UCIConfigSection](data []byte) (uci.UCIConfigSection, error) {
-	var s S
-	err := json.Unmarshal(data, &s)
-	return s, err
-}
-
-func unmarshalRawSection(data []byte) (section uci.UCIConfigSection, err error) {
-	var probe struct {
-		Type string `json:".type"`
-	}
-	var rawSection rawMap
-
-	if err = json.Unmarshal(data, &rawSection); err != nil {
-		return nil, err
-	}
-
-	sectionBytes, err := json.Marshal(rawSection)
-	if err != nil {
-		return nil, err
-	}
-
-	if err = json.Unmarshal(sectionBytes, &probe); err != nil {
-		return nil, err
-	}
-
-	switch probe.Type {
-	case firewall.DefaultsType:
-		section, err = unmarshalRawResult[firewall.DefaultsSection](data)
-	case firewall.ForwardingType:
-		section, err = unmarshalRawResult[firewall.ForwardingSection](data)
-	case firewall.RedirectType:
-		section, err = unmarshalRawResult[firewall.RedirectSection](data)
-	case firewall.RuleType:
-		section, err = unmarshalRawResult[firewall.RuleSection](data)
-	case firewall.ZoneType:
-		section, err = unmarshalRawResult[firewall.ZoneSection](data)
-	default:
-		return nil, errors.New("invalid config section")
-	}
-	fmt.Println("IN unmarshalRawSection: ", section)
-	return section, err
+	return c.do(ctx)
 }
 
 /*
@@ -267,17 +223,11 @@ func (v *valuesResult) UnmarshalJSON(data []byte) (err error) {
 	}
 
 	if isSingleObject(result) {
-		var probe struct {
-			Type string `json:".type"`
-		}
-		if err := json.Unmarshal(values, &probe); err != nil {
-			return err
-		}
 		section, err := unmarshalRawSection(values)
 		if err != nil {
 			return err
 		}
-		v.Values = map[string]uci.UCIConfigSection{probe.Type: section}
+		v.Values = map[string]uci.UCIConfigSection{section.GetName(): section}
 		return nil
 	} else {
 		// handle named entries in map
@@ -287,7 +237,6 @@ func (v *valuesResult) UnmarshalJSON(data []byte) (err error) {
 			if err != nil {
 				return err
 			}
-			fmt.Println("IN Unmarshal: ", section, err)
 			v.Values[name] = section
 		}
 	}
@@ -295,13 +244,52 @@ func (v *valuesResult) UnmarshalJSON(data []byte) (err error) {
 	return nil
 }
 
-// checks if the value of `values` is a single uci.UCIConfigSection or not
-func isSingleObject(m map[string]json.RawMessage) bool {
-	for k := range m {
-		return strings.HasPrefix(k, ".")
+func unmarshalRawResult[S uci.UCIConfigSection](data []byte) (uci.UCIConfigSection, error) {
+	var s S
+	err := json.Unmarshal(data, &s)
+	return s, err
+}
+
+func unmarshalRawSection(data []byte) (section uci.UCIConfigSection, err error) {
+	var probe struct {
+		Type string `json:".type"`
+	}
+	var rawSection rawMap
+
+	if err = json.Unmarshal(data, &rawSection); err != nil {
+		return nil, err
 	}
 
-	return false
+	sectionBytes, err := json.Marshal(rawSection)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = json.Unmarshal(sectionBytes, &probe); err != nil {
+		return nil, err
+	}
+
+	switch probe.Type {
+	case firewall.DefaultsType:
+		section, err = unmarshalRawResult[firewall.DefaultsSection](data)
+	case firewall.ForwardingType:
+		section, err = unmarshalRawResult[firewall.ForwardingSection](data)
+	case firewall.RedirectType:
+		section, err = unmarshalRawResult[firewall.RedirectSection](data)
+	case firewall.RuleType:
+		section, err = unmarshalRawResult[firewall.RuleSection](data)
+	case firewall.ZoneType:
+		section, err = unmarshalRawResult[firewall.ZoneSection](data)
+	default:
+		return nil, errors.New("invalid config section")
+	}
+	return section, err
+}
+
+// checks if the value of `values` is a single uci.UCIConfigSection or not
+func isSingleObject(m map[string]json.RawMessage) bool {
+	_, ok := m[".anonymous"]
+	return ok
 }
 
 /*
@@ -343,7 +331,6 @@ func matchValuesResult(data json.RawMessage) (ResultObject, error) {
 	var val valuesResult
 
 	if err := json.Unmarshal(data, &val); err == nil {
-		fmt.Println("IN matchValuesResult: unmarshal: ", val)
 		if len(val.Values) > 0 {
 			return val, nil
 		}

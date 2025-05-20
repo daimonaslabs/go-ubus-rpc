@@ -10,40 +10,27 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
-// add this later when we need a daemon client
-//type ubusSessionManager struct {
-//	Keepalive int
-//}
-
-// pass Keepalive to time.Ticker{}, goroutine listen to chan and refresh session
-// when Ticker = Keepalive (timeout / 2 by default)
-//func (u *UbusRPC) KeepAlive() {
-//	go ...
-//}
-
 type clientset struct {
 	rpcClient   *rpc.Client
 	ubusSession *session.Session
 }
 
-// implements UbusInterface
 type UbusRPC struct {
 	Call
 	*clientset
-	sessionCall
-	uciCall
+	sessionRPC
+	uciRPC
 }
 
 func (u *UbusRPC) Session() SessionInterface {
-	return newSessionCall(u)
+	return newSessionRPC(u)
 }
 
 func (u *UbusRPC) UCI() UCIInterface {
-	return newUCICall(u)
+	return newUCIRPC(u)
 }
 
 func NewUbusRPC(ctx context.Context, opts *ClientOptions) (*UbusRPC, error) {
-	initResultObjectMatcherRegistry()
 	c, err := newClientset(ctx, opts)
 	return &UbusRPC{
 		Call: Call{
@@ -53,7 +40,7 @@ func NewUbusRPC(ctx context.Context, opts *ClientOptions) (*UbusRPC, error) {
 	}, err
 }
 
-func (u *UbusRPC) Do(ctx context.Context) (r Response, err error) {
+func (u *UbusRPC) do(ctx context.Context) (r Response, err error) {
 	err = u.clientset.rpcClient.CallContext(ctx, &r, "call", u.Call.asParams()...)
 	return r, err
 }
