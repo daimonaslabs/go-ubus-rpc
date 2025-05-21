@@ -30,9 +30,9 @@ type UCIConfigSection interface {
 // implements UCIConfigSection
 // implements json.Marshaler and json.Unmarshaler
 type UCIConfigOptionsStatic struct {
-	Anonymous bool   `json:".anonymous"`
-	Type      string `json:".type"`
-	Name      string `json:".name"`
+	Anonymous bool   `json:".anonymous,omitempty"`
+	Type      string `json:".type,omitempty"`
+	Name      string `json:".name,omitempty"`
 	Index     int    `json:".index,omitempty"`
 }
 
@@ -50,6 +50,21 @@ func (s UCIConfigOptionsStatic) GetName() string {
 
 func (s UCIConfigOptionsStatic) GetIndex() int {
 	return s.Index
+}
+
+// TODO figure out how to get a UCIConfigSection without the static options
+// returns all the values of a UCIConfigSection with the static options stripped
+func Values(s UCIConfigSection) (r UCIConfigSection) {
+	//for option, value := range s {
+	//	if option != ".anonymous" || option != ".type" || option != ".name" || option != ".index" {
+	//		r[option] = value
+	//	}
+	//}
+
+	sectionBytes, _ := json.Marshal(s)
+	json.Unmarshal(sectionBytes, &r)
+
+	return r
 }
 
 type DynamicList []string

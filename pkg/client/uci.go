@@ -12,6 +12,7 @@ import (
 type UCIInterface interface {
 	Configs(ctx context.Context) (r Response, err error)
 	Get(ctx context.Context, opts UCIGetOptions) (r Response, err error)
+	Set(ctx context.Context, opts UCISetOptions) (r Response, err error)
 }
 
 // implements UCIInterface
@@ -33,6 +34,13 @@ func (c *uciRPC) Configs(ctx context.Context) (Response, error) {
 
 func (c *uciRPC) Get(ctx context.Context, opts UCIGetOptions) (Response, error) {
 	c.setProcedure("get")
+	c.setSignature(opts)
+
+	return c.do(ctx)
+}
+
+func (c *uciRPC) Set(ctx context.Context, opts UCISetOptions) (Response, error) {
+	c.setProcedure("set")
 	c.setSignature(opts)
 
 	return c.do(ctx)
@@ -81,12 +89,13 @@ func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 	if len(p) > 1 {
 		switch obj := p[1].(type) {
 		case valueResult:
-			u.Option = map[string]string{opts.Option: obj.Value}
+			u.Option = map[string]uci.DynamicList{opts.Option: obj.Value}
 		case valuesResult:
 			for _, section := range obj.Values {
 				switch s := section.(type) {
 				case firewall.DefaultsSection:
 					u.SectionArray = append(u.SectionArray, s)
+					s.Anonymous = false
 				case firewall.ForwardingSection:
 					u.SectionArray = append(u.SectionArray, s)
 				case firewall.RedirectSection:
@@ -106,10 +115,22 @@ func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 	return u, err
 }
 
+type UCISetOptions struct {
+	Config  string               `json:"config,omitempty"`
+	Section string               `json:"section,omitempty"`
+	Values  uci.UCIConfigSection `json:"values,omitempty"`
+}
+
+func (UCISetOptions) isOptsType() {}
+
+func (opts UCISetOptions) GetResult(p Response) (err error) {
+	return err
+}
+
 /*
 ################################################################
 #
-# all xResult types are in this block.
+# all exported XResult types are in this block.
 #
 ################################################################
 */
@@ -121,9 +142,17 @@ type UCIConfigsResult struct {
 
 // result of a `uci get` command
 type UCIGetResult struct {
-	SectionArray []uci.UCIConfigSection `json:"sectionArray,omitempty"`
-	Option       map[string]string      `json:"option,omitempty"`
+	SectionArray []uci.UCIConfigSection     `json:"sectionArray,omitempty"`
+	Option       map[string]uci.DynamicList `json:"option,omitempty"`
 }
+
+/*
+################################################################
+#
+# all unexported xResult types are in this block.
+#
+################################################################
+*/
 
 // implements ResultObject interface
 // used for handling the raw RPC response
@@ -136,7 +165,7 @@ func (configsResult) isResultObject() {}
 // implements ResultObject interface
 // used for handling the raw RPC response
 type valueResult struct {
-	Value string `json:"value"`
+	Value uci.DynamicList `json:"value"`
 }
 
 func (valueResult) isResultObject() {}

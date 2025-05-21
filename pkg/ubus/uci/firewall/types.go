@@ -6,6 +6,7 @@ import (
 
 // these are static values for the uci.UCIConfigOptionsStatic.Type field
 const (
+	Config         = "firewall"
 	DefaultsType   = "defaults"
 	ForwardingType = "forwarding"
 	RedirectType   = "redirect"

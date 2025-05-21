@@ -17,15 +17,15 @@ func main() {
 	if err != nil {
 		fmt.Println(rpc, err)
 	}
-	//uciGetOpts := client.UCIGetOptions{Config: "firewall", Section: "cfg04ad58", Option: "src"}
+	uciGetOpts := client.UCIGetOptions{Config: "firewall", Section: "cfg0b92bd"} //, Option: "icmp_type"}
 	//sessionLoginOpts := client.SessionLoginOptions{Username: "root", Password: "D@!monas"}
 	//rpc.Call = rpc.Session().Login(&sessionLoginOpts)
 	//rpc.Call = rpc.UCI().Configs()
-	response, err := rpc.UCI().Configs(ctx)
+	response, err := rpc.UCI().Get(ctx, uciGetOpts)
 	if err != nil {
 		fmt.Println("main1: ", err)
 	}
-	result, err := client.UCIConfigsOptions{}.GetResult(response)
+	result, err := uciGetOpts.GetResult(response)
 	//result, err := sessionLoginOpts.GetResult(response)
 	//result, err := client.UCIConfigsOptions{}.GetResult(response)
 	fmt.Println("response: ", response)
@@ -36,3 +36,17 @@ func main() {
 	//}
 	fmt.Println("err: ", reflect.TypeOf(err), err)
 }
+
+/*
+curl -k -H 'Content-Type: application/json' -d '{ "jsonrpc": "2.0", "id": 1, "method": "call", "params": [ "9a755e11de0c51431c6f1bc5ed0b885e", "uci", "set", {"config": "firewall", "section":"cfg04ad58", "values":{"enabled":true} } ] }'  https://10.0.0.1/ubus | jq -r
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": [
+    0
+  ]
+}
+
+`uci set` only works on existing sections and errors out if you provide the static fields in the `values` portion
+
+*/
