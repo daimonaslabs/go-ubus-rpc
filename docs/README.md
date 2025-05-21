@@ -78,19 +78,21 @@ func (c *uciRPC) Get(ctx context.Context, opts UCIGetOptions) (Response, error) 
 
 The `Response` object is a slice of the `ResultObject` interface, but in practice it is effectively a tuple
 as ubus responses only contain two objects. The first is always the exit code of the command and the second
-is the actual content of the response, the result that the user cares about. 
+is the actual content of the response, the result that the user cares about. However, some commands return
+with no second object in the response when successful. In that case, the exit code value (`Response[0]`) will
+be zero and the error returned will be `nil`, giving the user two ways to check if the command worked.
 
 Unexported xResult objects in this repo are meant to handle the raw JSON responses directly, which will
 then be marshaled into an exported XResult type to be used by the consumer. These exported XResult objects
 aim to be more useful and easy to use for the user than the raw responses handled by the unexported xResult
 objects.
 
-Each unexported xResult object must implement the `ResultObject` interface, as well as a 'de facto' interface
-with a `func matchxResult(data json.RawMessage) (ResultObject, error)` function that is called in the `Response`
-object's `UnmarshalJSON` method. In order to be used in `UnmarshalJSON`, this function must be added to the
-`resultObjectMatcherRegistry` via `init()`. `Response`'s `UnmarshalJSON` will then marshal the result (`Response[1]`)
-into the correct xResult object, and the Signature's `GetResult` method will then marshal the unexported xResult
-into the exported XResult type.
+Each unexported xResult object must implement the `ResultObject` interface and may also implement an optional 
+'de facto' interface with a `func matchxResult(data json.RawMessage) (ResultObject, error)` function that is
+called in the `Response` object's `UnmarshalJSON` method. In order to be used in `UnmarshalJSON`, this function
+must be added to the `resultObjectMatcherRegistry` via `init()`. `Response`'s `UnmarshalJSON` will then marshal
+the result (`Response[1]`) into the correct xResult object, and the Signature's `GetResult` method will then
+marshal the unexported xResult into the exported XResult type.
 
 For example:
 ```
