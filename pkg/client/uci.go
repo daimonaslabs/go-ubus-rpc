@@ -115,17 +115,15 @@ func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 	return u, err
 }
 
+// does not have a GetResult func because this command only returns the exit code
+// implements Signature interface
 type UCISetOptions struct {
-	Config  string               `json:"config,omitempty"`
-	Section string               `json:"section,omitempty"`
-	Values  uci.UCIConfigSection `json:"values,omitempty"`
+	Config  string                      `json:"config,omitempty"`
+	Section string                      `json:"section,omitempty"`
+	Values  uci.UCIConfigSectionOptions `json:"values,omitempty"`
 }
 
 func (UCISetOptions) isOptsType() {}
-
-func (opts UCISetOptions) GetResult(p Response) (err error) {
-	return err
-}
 
 /*
 ################################################################

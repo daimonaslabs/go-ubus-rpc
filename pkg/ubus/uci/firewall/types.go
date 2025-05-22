@@ -64,6 +64,14 @@ var ICMPTypes = []string{
 
 type DefaultsSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
+	DefaultsSectionOptions     `json:",inline"`
+}
+
+func (in *DefaultsSection) DeepCopyInto(out *DefaultsSection) {
+	*out = *in
+}
+
+type DefaultsSectionOptions struct {
 	// Accepts redirects. Implemented upstream in Linux Kernel.
 	AcceptRedirects uci.StringBool `json:"accept_redirects,omitempty"`
 	// Implemented upstream in Linux Kernel.
@@ -110,12 +118,18 @@ type DefaultsSection struct {
 	TCPWindowScaling uci.StringBool `json:"tcp_window_scaling,omitempty"`
 }
 
-func (in *DefaultsSection) DeepCopyInto(out *DefaultsSection) {
-	*out = *in
-}
+func (DefaultsSectionOptions) IsUCIConfigSectionOptions() {}
 
 type ForwardingSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
+	ForwardingSectionOptions   `json:",inline"`
+}
+
+func (in *ForwardingSection) DeepCopyInto(out *ForwardingSection) {
+	*out = *in
+}
+
+type ForwardingSectionOptions struct {
 	// Specifies the traffic destination zone. Refers to one of the defined zone names.
 	Dest string `json:"dest,omitempty"`
 	// If set to 0, forward is disabled.
@@ -132,12 +146,18 @@ type ForwardingSection struct {
 	Src string `json:"src,omitempty"`
 }
 
-func (in *ForwardingSection) DeepCopyInto(out *ForwardingSection) {
-	*out = *in
-}
+func (ForwardingSectionOptions) IsUCIConfigSectionOptions() {}
 
 type RedirectSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
+	RedirectSectionOptions     `json:",inline"`
+}
+
+func (in *RedirectSection) DeepCopyInto(out *RedirectSection) {
+	*out = *in
+}
+
+type RedirectSectionOptions struct {
 	// Specifies the traffic destination zone. Refers to one of the defined zone names, or * for any zone. If
 	// specified, the rule applies to forwarded traffic; otherwise, it is treated as input rule.
 	Dest string `json:"dest,omitempty"`
@@ -216,12 +236,18 @@ type RedirectSection struct {
 	UTCTime uci.StringBool `json:"utc_time,omitempty"`
 }
 
-func (in *RedirectSection) DeepCopyInto(out *RedirectSection) {
-	*out = *in
-}
+func (RedirectSectionOptions) IsUCIConfigSectionOptions() {}
 
 type RuleSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
+	RuleSectionOptions         `json:",inline"`
+}
+
+func (in *RuleSection) DeepCopyInto(out *RuleSection) {
+	*out = *in
+}
+
+type RuleSectionOptions struct {
 	// Specifies the traffic destination zone. Refers to one of the defined zone names, or * for any zone. If
 	// specified, the rule applies to forwarded traffic; otherwise, it is treated as input rule.
 	Dest string `json:"dest,omitempty"`
@@ -300,12 +326,18 @@ type RuleSection struct {
 	Weekdays uci.Time `json:"weekdays,omitempty"`
 }
 
-func (in *RuleSection) DeepCopyInto(out *RuleSection) {
-	*out = *in
-}
+func (RuleSectionOptions) IsUCIConfigSectionOptions() {}
 
 type ZoneSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
+	ZoneSectionOptions         `json:",inline"`
+}
+
+func (in *ZoneSection) DeepCopyInto(out *ZoneSection) {
+	*out = *in
+}
+
+type ZoneSectionOptions struct {
 	// Add CT helpers for zone.
 	AutoHelper uci.StringBool `json:"auto_helper,omitempty"`
 	// Enable generation of custom rule chain hooks for user generated rules. Has no effect if disabled (0) in a
@@ -357,6 +389,4 @@ type ZoneSection struct {
 	Subnet []string `json:"subnet,omitempty"`
 }
 
-func (in *ZoneSection) DeepCopyInto(out *ZoneSection) {
-	*out = *in
-}
+func (ZoneSectionOptions) IsUCIConfigSectionOptions() {}
