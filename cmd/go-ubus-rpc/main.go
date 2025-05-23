@@ -7,6 +7,7 @@ import (
 
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/client"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/session"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
 )
 
@@ -18,6 +19,10 @@ func main() {
 	if err != nil {
 		fmt.Println(rpc, err)
 	}
+	uciAddOpts := client.UCIAddOptions{Config: firewall.Config, Type: firewall.Forwarding}
+	response, _ := rpc.UCI().Add(ctx, uciAddOpts)
+	result, err := uciAddOpts.GetResult(response)
+
 	//uciGetOpts := client.UCIGetOptions{Config: "firewall", Section: "cfg0b92bd"} //, Option: "icmp_type"}
 	//response, err := rpc.UCI().Get(ctx, uciGetOpts)
 	//result, err := uciGetOpts.GetResult(response)
@@ -25,20 +30,21 @@ func main() {
 	//sessionLoginOpts := client.SessionLoginOptions{Username: "root", Password: "D@!monas"}
 	//response, err := rpc.UCI().Session.Login(ctx, uciGetOpts)
 	//result, err := sessionLoginOpts.GetResult(response)
-	forwarding := firewall.ForwardingSectionOptions{
-		Enabled: "hello?",
-		Family:  "ipv4",
-	}
-	uciSetOpts := client.UCISetOptions{Config: firewall.Config, Section: "cfg04ad58", Values: forwarding}
-	if err != nil {
-		fmt.Println("main1: ", err)
-	}
-	response, err := rpc.UCI().Set(ctx, uciSetOpts)
-	fmt.Println("response: ", response)
-	//fmt.Println("result: ", result)
+
+	////forwarding := firewall.ForwardingSectionOptions{
+	////	Enabled: uci.StringBoolTrue,
+	////}
+	//uciSetOpts := client.UCISetOptions{Config: firewall.Config, Section: "cfg04ad58", Values: forwarding}
+	//response, _ := rpc.UCI().Set(ctx, uciSetOpts)
+	//fmt.Println("set response: ", response)
+
+	uciApplyOpts := client.UCIApplyOptions{Rollback: uci.StringBoolTrue, Timeout: 10}
+	response, err = rpc.UCI().Apply(ctx, uciApplyOpts)
+
 	//fmt.Println("result: ", reflect.TypeOf(result), result.SectionArray)
 	//	for i, s := range result.SectionArray {
 	//fmt.Println("Go index: ", i, " ubus index: ", s.GetIndex())
 	//}
+	fmt.Println("result: ", result)
 	fmt.Println("err: ", reflect.TypeOf(err), err)
 }

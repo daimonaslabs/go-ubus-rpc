@@ -103,8 +103,9 @@ func registerResultObjectMatcher(checker resultObjectMatcher) {
 //	only return (nil, err) for broken JSON, which should almost never happen unless data is corrupted
 func init() {
 	registerResultObjectMatcher(matchExitCode)
+	registerResultObjectMatcher(matchAddResult)
+	registerResultObjectMatcher(matchConfigsResult)
 	registerResultObjectMatcher(matchSessionResult)
 	registerResultObjectMatcher(matchValueResult)
 	registerResultObjectMatcher(matchValuesResult)
-	registerResultObjectMatcher(matchConfigsResult)
 }

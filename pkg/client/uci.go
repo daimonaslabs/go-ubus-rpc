@@ -10,8 +10,13 @@ import (
 )
 
 type UCIInterface interface {
-	Configs(ctx context.Context) (r Response, err error)
+	Add(ctx context.Context, opts UCIAddOptions) (r Response, err error)
+	Apply(ctx context.Context, opts UCIApplyOptions) (r Response, err error)
+	//Changes(ctx context.Context, opts UCIChangesOptions) (r Response, err error)
+	Configs(ctx context.Context, opts UCIConfigsOptions) (r Response, err error)
+	//Delete(ctx context.Context) (r Response, err error)
 	Get(ctx context.Context, opts UCIGetOptions) (r Response, err error)
+	//Revert(ctx context.Context, opts UCIRevertOptions) (r Response, err error)
 	Set(ctx context.Context, opts UCISetOptions) (r Response, err error)
 }
 
@@ -25,9 +30,16 @@ func newUCIRPC(u *UbusRPC) *uciRPC {
 	return &uciRPC{u}
 }
 
-func (c *uciRPC) Configs(ctx context.Context) (Response, error) {
+func (c *uciRPC) Add(ctx context.Context, opts UCIAddOptions) (Response, error) {
+	c.setProcedure("add")
+	c.setSignature(opts)
+
+	return c.do(ctx)
+}
+
+func (c *uciRPC) Configs(ctx context.Context, opts UCIConfigsOptions) (Response, error) {
 	c.setProcedure("configs")
-	c.setSignature(UCIConfigsOptions{})
+	c.setSignature(opts)
 
 	return c.do(ctx)
 }
@@ -46,6 +58,13 @@ func (c *uciRPC) Set(ctx context.Context, opts UCISetOptions) (Response, error) 
 	return c.do(ctx)
 }
 
+func (c *uciRPC) Apply(ctx context.Context, opts UCIApplyOptions) (Response, error) {
+	c.setProcedure("apply")
+	c.setSignature(opts)
+
+	return c.do(ctx)
+}
+
 /*
 ################################################################
 #
@@ -56,6 +75,41 @@ func (c *uciRPC) Set(ctx context.Context, opts UCISetOptions) (Response, error) 
 */
 
 // implements Signature interface
+
+type UCIAddOptions struct {
+	Config uci.ConfigName  `json:"config,omitempty"`
+	Type   uci.SectionType `json:"type,omitempty"`
+}
+
+func (UCIAddOptions) isOptsType() {}
+
+func (opts UCIAddOptions) GetResult(p Response) (u UCIAddResult, err error) {
+	if len(p) > 1 {
+		data, _ := json.Marshal(p[1])
+		switch p[1].(type) {
+		case addResult:
+			err = json.Unmarshal(data, &u)
+		default:
+			return u, errors.New("not an AddResult")
+		}
+	} else { // error
+		return u, errors.New(p[0].(ExitCode).Error())
+	}
+	return u, err
+}
+
+// does not have a GetResult func because this command only returns the exit code
+// implements Signature interface
+type UCIApplyOptions struct {
+	Rollback uci.StringBool `json:"rollback,omitempty"`
+	Timeout  int            `json:"timeout,omitempty"`
+}
+
+func (UCIApplyOptions) isOptsType() {}
+
+// implements Signature interface
+// empty struct because there are no options but it has a special return type so we're
+// following the same pattern as the other commands to get the result
 type UCIConfigsOptions struct{}
 
 func (UCIConfigsOptions) isOptsType() {}
@@ -77,10 +131,10 @@ func (opts UCIConfigsOptions) GetResult(p Response) (u UCIConfigsResult, err err
 
 // implements Signature interface
 type UCIGetOptions struct {
-	Config  string `json:"config,omitempty"`
-	Section string `json:"section,omitempty"`
-	Type    string `json:"type,omitempty"`
-	Option  string `json:"option,omitempty"`
+	Config  uci.ConfigName `json:"config,omitempty"`
+	Section string         `json:"section,omitempty"`
+	Type    string         `json:"type,omitempty"`
+	Option  string         `json:"option,omitempty"`
 }
 
 func (UCIGetOptions) isOptsType() {}
@@ -118,7 +172,7 @@ func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 // does not have a GetResult func because this command only returns the exit code
 // implements Signature interface
 type UCISetOptions struct {
-	Config  string                      `json:"config,omitempty"`
+	Config  uci.ConfigName              `json:"config,omitempty"`
 	Section string                      `json:"section,omitempty"`
 	Values  uci.UCIConfigSectionOptions `json:"values,omitempty"`
 }
@@ -133,6 +187,11 @@ func (UCISetOptions) isOptsType() {}
 ################################################################
 */
 
+// result of a `uci add` command
+type UCIAddResult struct {
+	Section string `json:"section,omitempty"`
+}
+
 // result of a `uci configs` command
 type UCIConfigsResult struct {
 	Configs []string `json:"configs,omitempty"`
@@ -140,8 +199,11 @@ type UCIConfigsResult struct {
 
 // result of a `uci get` command
 type UCIGetResult struct {
-	SectionArray []uci.UCIConfigSection     `json:"sectionArray,omitempty"`
-	Option       map[string]uci.DynamicList `json:"option,omitempty"`
+	// if any combination of Config, Section, and Type are specified, return a set of
+	// UCIConfigSection(s)
+	SectionArray []uci.UCIConfigSection `json:"sectionArray,omitempty"`
+	// if Option is specified, return a single option's value
+	Option map[string]uci.DynamicList `json:"option,omitempty"`
 }
 
 /*
@@ -151,6 +213,14 @@ type UCIGetResult struct {
 #
 ################################################################
 */
+
+// implements ResultObject interface
+// used for handling the raw RPC response
+type addResult struct {
+	Section string `json:"section"`
+}
+
+func (addResult) isResultObject() {}
 
 // implements ResultObject interface
 // used for handling the raw RPC response
@@ -296,15 +366,15 @@ func unmarshalRawSection(data []byte) (section uci.UCIConfigSection, err error) 
 	}
 
 	switch probe.Type {
-	case firewall.DefaultsType:
+	case string(firewall.Defaults):
 		section, err = unmarshalRawResult[firewall.DefaultsSection](data)
-	case firewall.ForwardingType:
+	case string(firewall.Forwarding):
 		section, err = unmarshalRawResult[firewall.ForwardingSection](data)
-	case firewall.RedirectType:
+	case string(firewall.Redirect):
 		section, err = unmarshalRawResult[firewall.RedirectSection](data)
-	case firewall.RuleType:
+	case string(firewall.Rule):
 		section, err = unmarshalRawResult[firewall.RuleSection](data)
-	case firewall.ZoneType:
+	case string(firewall.Zone):
 		section, err = unmarshalRawResult[firewall.ZoneSection](data)
 	default:
 		return nil, errors.New("invalid config section")
@@ -325,6 +395,19 @@ func isSingleObject(m map[string]json.RawMessage) bool {
 #
 ################################################################
 */
+
+// matcher for addResult
+func matchAddResult(data json.RawMessage) (ResultObject, error) {
+	var val addResult
+
+	if err := json.Unmarshal(data, &val); err == nil {
+		if len(val.Section) > 0 {
+			return val, nil
+		}
+	}
+
+	return nil, nil
+}
 
 // matcher for configsResult
 func matchConfigsResult(data json.RawMessage) (ResultObject, error) {

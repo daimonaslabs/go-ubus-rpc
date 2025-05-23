@@ -4,14 +4,16 @@ import (
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
 )
 
-// these are static values for the uci.UCIConfigOptionsStatic.Type field
 const (
-	Config         = "firewall"
-	DefaultsType   = "defaults"
-	ForwardingType = "forwarding"
-	RedirectType   = "redirect"
-	RuleType       = "rule"
-	ZoneType       = "zone"
+	// the name of this config
+	Config = uci.ConfigName("firewall")
+
+	// these are static values for the uci.UCIConfigOptionsStatic.Type field
+	Defaults   = uci.SectionType("defaults")
+	Forwarding = uci.SectionType("forwarding")
+	Redirect   = uci.SectionType("redirect")
+	Rule       = uci.SectionType("rule")
+	Zone       = uci.SectionType("zone")
 )
 
 // Used by RuleSection.ICMPType
