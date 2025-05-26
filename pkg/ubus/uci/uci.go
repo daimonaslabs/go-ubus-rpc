@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	// the names of all the default configs managed by UCI
 	DHCP     = ConfigName("dhcp")
 	Dropbear = ConfigName("dropbear")
 	Firewall = ConfigName("firewall")

@@ -104,6 +104,7 @@ func registerResultObjectMatcher(checker resultObjectMatcher) {
 func init() {
 	registerResultObjectMatcher(matchExitCode)
 	registerResultObjectMatcher(matchAddResult)
+	registerResultObjectMatcher(matchChangesResult)
 	registerResultObjectMatcher(matchConfigsResult)
 	registerResultObjectMatcher(matchSessionResult)
 	registerResultObjectMatcher(matchValueResult)

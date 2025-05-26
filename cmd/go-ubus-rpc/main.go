@@ -7,7 +7,6 @@ import (
 
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/client"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/session"
-	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
 )
 
@@ -21,7 +20,20 @@ func main() {
 	}
 	uciAddOpts := client.UCIAddOptions{Config: firewall.Config, Type: firewall.Forwarding}
 	response, _ := rpc.UCI().Add(ctx, uciAddOpts)
+	uciAddOpts2 := client.UCIAddOptions{Config: firewall.Config, Type: firewall.Zone}
+	_, _ = rpc.UCI().Add(ctx, uciAddOpts2)
 	result, err := uciAddOpts.GetResult(response)
+	fmt.Println("addResponse: ", response)
+	fmt.Println("addResult: ", result)
+	fmt.Println("addErr: ", err)
+
+	uciChangesOpts := client.UCIChangesOptions{} //Config: firewall.Config}
+	response, _ = rpc.UCI().Changes(ctx, uciChangesOpts)
+	changesResult, err := uciChangesOpts.GetResult(response)
+
+	fmt.Println("changesResponse: ", response)
+	fmt.Println("changesResult: ", changesResult)
+	fmt.Println("changesErr: ", err)
 
 	//uciGetOpts := client.UCIGetOptions{Config: "firewall", Section: "cfg0b92bd"} //, Option: "icmp_type"}
 	//response, err := rpc.UCI().Get(ctx, uciGetOpts)
@@ -38,13 +50,12 @@ func main() {
 	//response, _ := rpc.UCI().Set(ctx, uciSetOpts)
 	//fmt.Println("set response: ", response)
 
-	uciApplyOpts := client.UCIApplyOptions{Rollback: uci.StringBoolTrue, Timeout: 10}
-	response, err = rpc.UCI().Apply(ctx, uciApplyOpts)
+	//uciApplyOpts := client.UCIApplyOptions{Rollback: uci.StringBoolTrue, Timeout: 10}
+	//response, err = rpc.UCI().Apply(ctx, uciApplyOpts)
 
 	//fmt.Println("result: ", reflect.TypeOf(result), result.SectionArray)
 	//	for i, s := range result.SectionArray {
 	//fmt.Println("Go index: ", i, " ubus index: ", s.GetIndex())
 	//}
-	fmt.Println("result: ", result)
 	fmt.Println("err: ", reflect.TypeOf(err), err)
 }
