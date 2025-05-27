@@ -15,7 +15,7 @@ type UCIInterface interface {
 	Apply(ctx context.Context, opts UCIApplyOptions) (r Response, err error)
 	Changes(ctx context.Context, opts UCIChangesOptions) (r Response, err error)
 	Configs(ctx context.Context, opts UCIConfigsOptions) (r Response, err error)
-	//Delete(ctx context.Context, opts UCIDeleteOptions) (r Response, err error)
+	Delete(ctx context.Context, opts UCIDeleteOptions) (r Response, err error)
 	Get(ctx context.Context, opts UCIGetOptions) (r Response, err error)
 	//Revert(ctx context.Context, opts UCIRevertOptions) (r Response, err error)
 	Set(ctx context.Context, opts UCISetOptions) (r Response, err error)
@@ -59,6 +59,13 @@ func (c *uciRPC) Configs(ctx context.Context, opts UCIConfigsOptions) (Response,
 	return c.do(ctx)
 }
 
+func (c *uciRPC) Delete(ctx context.Context, opts UCIDeleteOptions) (Response, error) {
+	c.setProcedure("configs")
+	c.setSignature(opts)
+
+	return c.do(ctx)
+}
+
 func (c *uciRPC) Get(ctx context.Context, opts UCIGetOptions) (Response, error) {
 	c.setProcedure("get")
 	c.setSignature(opts)
@@ -83,7 +90,6 @@ func (c *uciRPC) Set(ctx context.Context, opts UCISetOptions) (Response, error) 
 */
 
 // implements Signature interface
-
 type UCIAddOptions struct {
 	Config uci.ConfigName  `json:"config,omitempty"`
 	Type   uci.SectionType `json:"type,omitempty"`
@@ -144,13 +150,14 @@ func (opts UCIChangesOptions) GetResult(p Response) (u UCIChangesResult, err err
 	}
 	return u, err
 }
+
 func exportRawChanges(changes []change) (Changes []Change) {
 	for _, c := range changes {
 		var C Change
 		C.Procedure = c[0]
 		C.SectionName = c[1]
 		if len(c) == 3 {
-			C.Value = c[2]
+			C.SectionType = uci.SectionType(c[2])
 		} else if len(c) == 4 {
 			C.Option = c[2]
 			C.Value = c[3]
@@ -182,6 +189,17 @@ func (opts UCIConfigsOptions) GetResult(p Response) (u UCIConfigsResult, err err
 	}
 	return u, err
 }
+
+// does not have a GetResult func because this command only returns the exit code
+// implements Signature interface
+type UCIDeleteOptions struct {
+	Config  uci.ConfigName `json:"config,omitempty"`
+	Section string         `json:"section,omitempty"`
+	Type    string         `json:"type,omitempty"`
+	Option  string         `json:"option,omitempty"`
+}
+
+func (UCIDeleteOptions) isOptsType() {}
 
 // implements Signature interface
 type UCIGetOptions struct {
@@ -246,10 +264,11 @@ type UCIAddResult struct {
 }
 
 type Change struct {
-	Procedure   string `json:"procedure"`
-	SectionName string `json:"sectionName"`
-	Option      string `json:"option,omitempty"`
-	Value       string `json:"value"`
+	Procedure   string          `json:"procedure"`
+	SectionName string          `json:"sectionName"`
+	SectionType uci.SectionType `json:"sectionType,omitempty"`
+	Option      string          `json:"option,omitempty"`
+	Value       string          `json:"value,omitempty"`
 }
 
 type UCIChangesResult struct {
