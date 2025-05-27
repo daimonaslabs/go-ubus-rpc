@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"reflect"
 
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
@@ -17,7 +18,7 @@ type UCIInterface interface {
 	Configs(ctx context.Context, opts UCIConfigsOptions) (r Response, err error)
 	Delete(ctx context.Context, opts UCIDeleteOptions) (r Response, err error)
 	Get(ctx context.Context, opts UCIGetOptions) (r Response, err error)
-	//Revert(ctx context.Context, opts UCIRevertOptions) (r Response, err error)
+	Revert(ctx context.Context, opts UCIRevertOptions) (r Response, err error)
 	Set(ctx context.Context, opts UCISetOptions) (r Response, err error)
 }
 
@@ -70,6 +71,14 @@ func (c *uciRPC) Get(ctx context.Context, opts UCIGetOptions) (Response, error) 
 	c.setProcedure("get")
 	c.setSignature(opts)
 
+	return c.do(ctx)
+}
+
+func (c *uciRPC) Revert(ctx context.Context, opts UCIRevertOptions) (Response, error) {
+	c.setProcedure("revert")
+	c.setSignature(opts)
+
+	fmt.Println(c.Call)
 	return c.do(ctx)
 }
 
@@ -239,6 +248,14 @@ func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 	}
 	return u, err
 }
+
+// does not have a GetResult func because this command only returns the exit code
+// implements Signature interface
+type UCIRevertOptions struct {
+	Config uci.ConfigName `json:"config,omitempty"`
+}
+
+func (UCIRevertOptions) isOptsType() {}
 
 // does not have a GetResult func because this command only returns the exit code
 // implements Signature interface

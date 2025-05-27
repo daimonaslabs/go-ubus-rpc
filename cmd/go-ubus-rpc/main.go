@@ -6,7 +6,6 @@ import (
 
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/client"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/session"
-	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
 )
 
@@ -20,33 +19,39 @@ func main() {
 	}
 	uciAddOpts := client.UCIAddOptions{Config: firewall.Config, Type: firewall.Forwarding}
 	response, _ := rpc.UCI().Add(ctx, uciAddOpts)
-	addResult, err := uciAddOpts.GetResult(response)
+	//addResult, err := uciAddOpts.GetResult(response)
 	fmt.Println("addResponse: ", response, err)
 	uciChangesOpts := client.UCIChangesOptions{} //Config: firewall.Config}
 	response, _ = rpc.UCI().Changes(ctx, uciChangesOpts)
 	fmt.Println("addChangesResponse: ", response, err)
-	uciApplyOpts := client.UCIApplyOptions{Rollback: uci.StringBoolTrue, Timeout: 10}
-	response, err = rpc.UCI().Apply(ctx, uciApplyOpts)
-	fmt.Println("addApplyResponse: ", response, err)
+	//uciApplyOpts := client.UCIApplyOptions{Rollback: uci.StringBoolTrue, Timeout: 10}
+	//response, err = rpc.UCI().Apply(ctx, uciApplyOpts)
+	//fmt.Println("addApplyResponse: ", response, err)
 
-	forwarding := firewall.ForwardingSectionOptions{
-		Enabled: uci.StringBoolTrue,
-	}
-	uciSetOpts := client.UCISetOptions{Config: firewall.Config, Section: addResult.Section, Values: forwarding}
-	response, err = rpc.UCI().Set(ctx, uciSetOpts)
-	fmt.Println("setResponse: ", response, err)
+	uciRevertOpts := client.UCIRevertOptions{Config: firewall.Config}
+	response, _ = rpc.UCI().Revert(ctx, uciRevertOpts)
+	fmt.Println("revertResponse: ", response, err)
 	response, _ = rpc.UCI().Changes(ctx, uciChangesOpts)
-	fmt.Println("setChangesResponse: ", response, err)
-	response, err = rpc.UCI().Apply(ctx, uciApplyOpts)
-	fmt.Println("setApplyResponse: ", response, err)
+	fmt.Println("addChangesResponse: ", response, err)
 
-	uciDelOpts := client.UCIDeleteOptions{Config: firewall.Config, Section: addResult.Section} //, Option: "enabled"}
-	response, err = rpc.UCI().Delete(ctx, uciDelOpts)
-	fmt.Println("delResponse: ", response, err)
-	response, _ = rpc.UCI().Changes(ctx, uciChangesOpts)
-	fmt.Println("delChangesResponse: ", response, err)
-	response, err = rpc.UCI().Apply(ctx, uciApplyOpts)
-	fmt.Println("delApplyResponse: ", response, err)
+	//forwarding := firewall.ForwardingSectionOptions{
+	//	Enabled: uci.StringBoolTrue,
+	//}
+	//uciSetOpts := client.UCISetOptions{Config: firewall.Config, Section: addResult.Section, Values: forwarding}
+	//response, err = rpc.UCI().Set(ctx, uciSetOpts)
+	//fmt.Println("setResponse: ", response, err)
+	//response, _ = rpc.UCI().Changes(ctx, uciChangesOpts)
+	//fmt.Println("setChangesResponse: ", response, err)
+	//response, err = rpc.UCI().Apply(ctx, uciApplyOpts)
+	//fmt.Println("setApplyResponse: ", response, err)
+
+	//uciDelOpts := client.UCIDeleteOptions{Config: firewall.Config, Section: addResult.Section} //, Option: "enabled"}
+	//response, err = rpc.UCI().Delete(ctx, uciDelOpts)
+	//fmt.Println("delResponse: ", response, err)
+	//response, _ = rpc.UCI().Changes(ctx, uciChangesOpts)
+	//fmt.Println("delChangesResponse: ", response, err)
+	//response, err = rpc.UCI().Apply(ctx, uciApplyOpts)
+	//fmt.Println("delApplyResponse: ", response, err)
 
 	//uciAddOpts2 := client.UCIAddOptions{Config: firewall.Config, Type: firewall.Zone}
 	//_, _ = rpc.UCI().Add(ctx, uciAddOpts2)
