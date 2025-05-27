@@ -60,7 +60,7 @@ func (c *uciRPC) Configs(ctx context.Context, opts UCIConfigsOptions) (Response,
 }
 
 func (c *uciRPC) Delete(ctx context.Context, opts UCIDeleteOptions) (Response, error) {
-	c.setProcedure("configs")
+	c.setProcedure("delete")
 	c.setSignature(opts)
 
 	return c.do(ctx)
@@ -155,9 +155,9 @@ func exportRawChanges(changes []change) (Changes []Change) {
 	for _, c := range changes {
 		var C Change
 		C.Procedure = c[0]
-		C.SectionName = c[1]
+		C.Section = c[1]
 		if len(c) == 3 {
-			C.SectionType = uci.SectionType(c[2])
+			C.Type = uci.SectionType(c[2])
 		} else if len(c) == 4 {
 			C.Option = c[2]
 			C.Value = c[3]
@@ -264,11 +264,11 @@ type UCIAddResult struct {
 }
 
 type Change struct {
-	Procedure   string          `json:"procedure"`
-	SectionName string          `json:"sectionName"`
-	SectionType uci.SectionType `json:"sectionType,omitempty"`
-	Option      string          `json:"option,omitempty"`
-	Value       string          `json:"value,omitempty"`
+	Procedure string          `json:"procedure"`
+	Section   string          `json:"section"`
+	Type      uci.SectionType `json:"type,omitempty"`
+	Option    string          `json:"option,omitempty"`
+	Value     string          `json:"value,omitempty"`
 }
 
 type UCIChangesResult struct {
