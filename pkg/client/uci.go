@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"reflect"
 
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
@@ -78,7 +77,6 @@ func (c *uciRPC) Revert(ctx context.Context, opts UCIRevertOptions) (Response, e
 	c.setProcedure("revert")
 	c.setSignature(opts)
 
-	fmt.Println(c.Call)
 	return c.do(ctx)
 }
 
@@ -92,7 +90,7 @@ func (c *uciRPC) Set(ctx context.Context, opts UCISetOptions) (Response, error) 
 /*
 ################################################################
 #
-# all xOptions types are in this block. they all implement the
+# all XOptions types are in this block. they all implement the
 # Signature interface.
 #
 ################################################################
@@ -138,17 +136,17 @@ type UCIChangesOptions struct {
 func (UCIChangesOptions) isOptsType() {}
 
 func (opts UCIChangesOptions) GetResult(p Response) (u UCIChangesResult, err error) {
-	u.Changes = make(map[string][]Change)
+	u.Changes = make(map[uci.ConfigName][]Change)
 	if len(p) > 1 {
 		//data, _ := json.Marshal(p[1])
 		switch c := p[1].(type) {
 		case changesResult:
 			if len(c.Many) > 0 {
 				for config, changes := range c.Many {
-					u.Changes[config] = exportRawChanges(changes)
+					u.Changes[uci.ConfigName(config)] = exportRawChanges(changes)
 				}
 			} else if len(c.One) > 0 {
-				u.Changes[string(opts.Config)] = exportRawChanges(c.One)
+				u.Changes[opts.Config] = exportRawChanges(c.One)
 				return u, nil
 			}
 		default:
@@ -289,12 +287,12 @@ type Change struct {
 }
 
 type UCIChangesResult struct {
-	Changes map[string][]Change `json:"changes"`
+	Changes map[uci.ConfigName][]Change `json:"changes"`
 }
 
 // result of a `uci configs` command
 type UCIConfigsResult struct {
-	Configs []string `json:"configs,omitempty"`
+	Configs []uci.ConfigName `json:"configs,omitempty"`
 }
 
 // result of a `uci get` command
@@ -373,8 +371,8 @@ func (v changesResult) MarshalJSON() ([]byte, error) {
 }
 
 func (v *changesResult) UnmarshalJSON(data []byte) (err error) {
+	// One: [["add", "cfg0fad58", "forwarding" ], ... ] || Many: {"firewall": [["add", "cfg0fad58", "forwarding" ], ... ], "dhcp": [[...], ...]}
 	var topLevel rawMap // {"changes": json.RawMessage}
-	//var result rawMap   // One: [["add", "cfg0fad58", "forwarding" ], ... ] || Many: {"firewall": [["add", "cfg0fad58", "forwarding" ], ... ], "dhcp": [[...], ...]}
 	if err = json.Unmarshal(data, &topLevel); err != nil {
 		return err
 	}
@@ -412,7 +410,7 @@ func isSingleChanges(m map[string]json.RawMessage) bool {
 // implements ResultObject interface
 // used for handling the raw RPC response
 type configsResult struct {
-	Configs []string `json:"configs"`
+	Configs []uci.ConfigName `json:"configs"`
 }
 
 func (configsResult) isResultObject() {}

@@ -32,24 +32,6 @@ func (u *UbusRPC) UCI() UCIInterface {
 	return newUCIRPC(u)
 }
 
-func NewUbusRPC(ctx context.Context, opts *ClientOptions) (*UbusRPC, error) {
-	c, err := newClientset(ctx, opts)
-	return &UbusRPC{
-		Call: Call{
-			SessionID: c.ubusSession.SessionID,
-		},
-		clientset: c,
-	}, err
-}
-
-func (u *UbusRPC) do(ctx context.Context) (r Response, err error) {
-	err = u.clientset.rpcClient.CallContext(ctx, &r, "call", u.Call.asParams()...)
-	if r[0].(ExitCode) != 0 {
-		err = errors.New(r[0].(ExitCode).Error())
-	}
-	return r, err
-}
-
 type ClientOptions struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -57,7 +39,7 @@ type ClientOptions struct {
 	URL      string `json:"url"`
 }
 
-func newClientset(ctx context.Context, opts *ClientOptions) (c *clientset, err error) {
+func NewUbusRPC(ctx context.Context, opts *ClientOptions) (*UbusRPC, error) {
 	// initialize RPC client
 	tokenHeader := rpc.WithHeader("Content-Type", "application/json")
 	httpClient := rpc.WithHTTPClient(&http.Client{
@@ -68,7 +50,7 @@ func newClientset(ctx context.Context, opts *ClientOptions) (c *clientset, err e
 		log.Fatalln(err)
 	}
 
-	c = &clientset{
+	c := &clientset{
 		rpcClient:   rpcClient,
 		ubusSession: &session.Session{},
 	}
@@ -96,5 +78,18 @@ func newClientset(ctx context.Context, opts *ClientOptions) (c *clientset, err e
 
 	session := response[1].(sessionResult)
 	c.ubusSession = &session.Session
-	return c, err
+	return &UbusRPC{
+		Call: Call{
+			SessionID: c.ubusSession.SessionID,
+		},
+		clientset: c,
+	}, err
+}
+
+func (u *UbusRPC) do(ctx context.Context) (r Response, err error) {
+	err = u.clientset.rpcClient.CallContext(ctx, &r, "call", u.Call.asParams()...)
+	if r[0].(ExitCode) != 0 {
+		err = errors.New(r[0].(ExitCode).Error())
+	}
+	return r, err
 }
