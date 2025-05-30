@@ -29,51 +29,6 @@ func prepare() (ctx context.Context, rpc *UbusRPC) {
 	return ctx, rpc
 }
 
-/*
-		uciRevertOpts := UCIRevertOptions{Config: firewall.Config}
-		response, _ = rpc.UCI().Revert(ctx, uciRevertOpts)
-
-		response, _ = rpc.UCI().Changes(ctx, uciChangesOpts)
-
-
-
-		response, _ = rpc.UCI().Changes(ctx, uciChangesOpts)
-		response, _ = rpc.UCI().Apply(ctx, uciApplyOpts)
-
-		uciDelOpts := UCIDeleteOptions{Config: firewall.Config, Section: addResult.Section} //, Option: "enabled"}
-		response, _ = rpc.UCI().Delete(ctx, uciDelOpts)
-
-		response, _ = rpc.UCI().Changes(ctx, uciChangesOpts)
-
-		response, _ = rpc.UCI().Apply(ctx, uciApplyOpts)
-
-		uciAddOpts2 := UCIAddOptions{Config: firewall.Config, Type: firewall.Zone}
-		_, _ = rpc.UCI().Add(ctx, uciAddOpts2)
-		//result, err := uciAddOpts.GetResult(response)
-
-		response, _ = rpc.UCI().Changes(ctx, uciChangesOpts)
-		//changesResult, err := uciChangesOpts.GetResult(response)
-
-		uciGetOpts := UCIGetOptions{Config: "firewall", Section: "cfg0b92bd"} //, Option: "icmp_type"}
-		response, _ = rpc.UCI().Get(ctx, uciGetOpts)
-		//getResult, err := uciGetOpts.GetResult(response)
-
-		sessionLoginOpts := SessionLoginOptions{Username: "root", Password: "D@!monas"}
-		response, _ = rpc.Session().Login(ctx, sessionLoginOpts)
-		//loginResult, err := sessionLoginOpts.GetResult(response)
-
-		forwarding = firewall.ForwardingSectionOptions{
-			Enabled: uci.StringBoolTrue,
-		}
-		uciSetOpts = UCISetOptions{Config: firewall.Config, Section: "cfg04ad58", Values: forwarding}
-		response, _ = rpc.UCI().Set(ctx, uciSetOpts)
-
-		uciApplyOpts = UCIApplyOptions{Rollback: uci.StringBoolTrue, Timeout: 10}
-		response, _ = rpc.UCI().Apply(ctx, uciApplyOpts)
-
-}
-*/
-
 func checkErr(t *testing.T, err error) {
 	if err != nil {
 		t.Error(err)
