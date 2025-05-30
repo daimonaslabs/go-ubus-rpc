@@ -65,7 +65,7 @@ func (opts SessionLoginOptions) GetResult(p Response) (u LoginResult, err error)
 /*
 ################################################################
 #
-# all xResult types are in this block.
+# all exported XResult types are in this block.
 #
 ################################################################
 */
@@ -74,6 +74,14 @@ func (opts SessionLoginOptions) GetResult(p Response) (u LoginResult, err error)
 type LoginResult struct {
 	session.Session `json:",inline"`
 }
+
+/*
+################################################################
+#
+# all unexported xResult types are in this block.
+#
+################################################################
+*/
 
 // implements ResultObject interface
 // used for handling the raw RPC response
