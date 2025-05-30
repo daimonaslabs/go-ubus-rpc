@@ -4,10 +4,10 @@ import (
 	"context"
 	"flag"
 	"log"
+	"reflect"
 	"slices"
 	"testing"
 
-	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/session"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
 )
@@ -20,7 +20,7 @@ var (
 
 func prepare() (ctx context.Context, rpc *UbusRPC) {
 	ctx = context.Background()
-	opts := ClientOptions{Username: *username, Password: *password, URL: *url, Timeout: session.DefaultSessionTimeout}
+	opts := ClientOptions{Username: *username, Password: *password, URL: *url, Timeout: 15}
 	rpc, err := NewUbusRPC(ctx, &opts)
 	if err != nil {
 		log.Fatalln("error creating ubus client")
@@ -30,51 +30,12 @@ func prepare() (ctx context.Context, rpc *UbusRPC) {
 }
 
 /*
-	func TestMain(m *testing.M) {
-		flag.Parse()
-
-			sequence1:
-			get entire config
-			add
-			set
-			$reusable
-
-			sequence2:
-			get entire config
-			delete
-			$reusable
-
-			reusable:
-			changes
-			apply
-			get entire config
-
-			independent:
-			configs
-			revert
-
-		ctx, rpc := prepare()
-
-		uciAddOpts := UCIAddOptions{Config: firewall.Config, Type: firewall.Forwarding}
-		response, _ := rpc.UCI().Add(ctx, uciAddOpts)
-		addResult, _ := uciAddOpts.GetResult(response)
-
-		uciChangesOpts := UCIChangesOptions{} //Config: firewall.Config}
-		response, _ = rpc.UCI().Changes(ctx, uciChangesOpts)
-
-		uciApplyOpts := UCIApplyOptions{Rollback: uci.StringBoolTrue, Timeout: 10}
-		response, _ = rpc.UCI().Apply(ctx, uciApplyOpts)
-
 		uciRevertOpts := UCIRevertOptions{Config: firewall.Config}
 		response, _ = rpc.UCI().Revert(ctx, uciRevertOpts)
 
 		response, _ = rpc.UCI().Changes(ctx, uciChangesOpts)
 
-		forwarding := firewall.ForwardingSectionOptions{
-			Enabled: uci.StringBoolTrue,
-		}
-		uciSetOpts := UCISetOptions{Config: firewall.Config, Section: addResult.Section, Values: forwarding}
-		response, _ = rpc.UCI().Set(ctx, uciSetOpts)
+
 
 		response, _ = rpc.UCI().Changes(ctx, uciChangesOpts)
 		response, _ = rpc.UCI().Apply(ctx, uciApplyOpts)
@@ -112,6 +73,65 @@ func prepare() (ctx context.Context, rpc *UbusRPC) {
 
 }
 */
+
+func checkErr(t *testing.T, err error) {
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestUCIAddSetDelete(t *testing.T) {
+	ctx, rpc := prepare()
+
+	// add a new config section and set an option within it
+	uciAddOpts := UCIAddOptions{Config: firewall.Config, Type: firewall.Forwarding}
+	addResponse, err := rpc.UCI().Add(ctx, uciAddOpts)
+	checkErr(t, err)
+	addResult, err := uciAddOpts.GetResult(addResponse)
+	checkErr(t, err)
+
+	forwardingSectionOptions := firewall.ForwardingSectionOptions{
+		Enabled: uci.StringBoolTrue,
+	}
+	uciSetOpts := UCISetOptions{Config: firewall.Config, Section: addResult.Section, Values: forwardingSectionOptions}
+	_, err = rpc.UCI().Set(ctx, uciSetOpts)
+	checkErr(t, err)
+
+	uciApplyOpts := UCIApplyOptions{Rollback: uci.StringBoolTrue, Timeout: 10}
+	_, err = rpc.UCI().Apply(ctx, uciApplyOpts)
+	checkErr(t, err)
+
+	// check that the config was actually applied
+	uciGetOpts := UCIGetOptions{Config: firewall.Config, Section: addResult.Section}
+	getResponse, err := rpc.UCI().Get(ctx, uciGetOpts)
+	checkErr(t, err)
+	getResult, err := uciGetOpts.GetResult(getResponse)
+	checkErr(t, err)
+
+	newSection, ok := getResult.SectionArray[0].(firewall.ForwardingSection)
+	if !ok {
+		t.Error("result is not a ForwardingSection")
+	}
+
+	if !reflect.DeepEqual(newSection.ForwardingSectionOptions, forwardingSectionOptions) {
+		t.Error("options not set correctly")
+	}
+	t.Log("\nexpected result: ", forwardingSectionOptions, "\nactual result: ", newSection.ForwardingSectionOptions)
+
+	// delete the section
+	uciDeleteOpts := UCIDeleteOptions{Config: firewall.Config, Section: addResult.Section}
+	_, err = rpc.UCI().Delete(ctx, uciDeleteOpts)
+	checkErr(t, err)
+	_, err = rpc.UCI().Apply(ctx, uciApplyOpts)
+	checkErr(t, err)
+
+	// confirm deletion
+	_, err = rpc.UCI().Get(ctx, uciGetOpts)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestUCIConfigs(t *testing.T) {
 	ctx, rpc := prepare()
 	expected := configsResult{Configs: []uci.ConfigName{uci.DHCP, uci.Dropbear, uci.Firewall, uci.LuCI,
@@ -134,14 +154,36 @@ func TestUCIConfigs(t *testing.T) {
 		}
 	}
 	if notPresent {
-		t.Error("expected configsResult: ", expected.Configs)
-		t.Error("acctual configsResult: ", result.Configs)
+		t.Error("\nexpected configsResult: ", expected.Configs, "\nactual configsResult: ", result.Configs)
+	} else {
+		t.Log("\nexpected configsResult: ", expected.Configs, "\nactual configsResult: ", result.Configs, "\nactual configsResult contains all expected values")
 	}
 }
 
 func TestUCIRevert(t *testing.T) {
 	ctx, rpc := prepare()
-	expected := changesResult{}
+	uciAddOpts := UCIAddOptions{Config: firewall.Config, Type: firewall.Forwarding}
+	uciChangesOpts := UCIChangesOptions{Config: firewall.Config}
 	uciRevertOpts := UCIRevertOptions{Config: firewall.Config}
 
+	rpc.UCI().Add(ctx, uciAddOpts)
+	changesResponse, _ := rpc.UCI().Changes(ctx, uciChangesOpts)
+	changesResult, _ := uciChangesOpts.GetResult(changesResponse)
+
+	t.Log("should be one change: ", changesResult)
+	if changesResult.Changes == nil {
+		t.Error("problem listing changes")
+	}
+
+	revertResponse, err := rpc.UCI().Revert(ctx, uciRevertOpts)
+	t.Log("should be exit status 0: ", revertResponse)
+	if err != nil {
+		t.Error(err)
+	}
+	changesResponse, _ = rpc.UCI().Changes(ctx, uciChangesOpts)
+	changesResult, _ = uciChangesOpts.GetResult(changesResponse)
+	t.Log("should be zero changes: ", changesResult)
+	if changesResult.Changes == nil {
+		t.Error("did not revert changes!")
+	}
 }
