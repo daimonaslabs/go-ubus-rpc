@@ -94,6 +94,14 @@ const (
 	StringBoolTrue  = StringBool("1")
 )
 
+func ToStringBool(b bool) (s StringBool) {
+	if b {
+		return StringBoolTrue
+	} else {
+		return StringBoolFalse
+	}
+}
+
 // TODO make these safer, check for the right format within the strings. split into
 // separate, more specific types as needed. see FirewallConfig.RuleSection for all the
 // different time and date options needed.

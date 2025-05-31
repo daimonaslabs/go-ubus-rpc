@@ -141,13 +141,14 @@ func (opts UCIChangesOptions) GetResult(p Response) (u UCIChangesResult, err err
 		//data, _ := json.Marshal(p[1])
 		switch c := p[1].(type) {
 		case changesResult:
-			if len(c.Many) > 0 {
+			if len(c.One) > 0 {
+				u.Changes[opts.Config] = exportRawChanges(c.One)
+				return u, nil
+
+			} else {
 				for config, changes := range c.Many {
 					u.Changes[uci.ConfigName(config)] = exportRawChanges(changes)
 				}
-			} else if len(c.One) > 0 {
-				u.Changes[opts.Config] = exportRawChanges(c.One)
-				return u, nil
 			}
 		default:
 			return u, errors.New("not a ChangesResult")
@@ -593,11 +594,15 @@ func matchAddResult(data json.RawMessage) (ResultObject, error) {
 
 // matcher for changesResult
 func matchChangesResult(data json.RawMessage) (ResultObject, error) {
+	var raw rawMap
 	var val changesResult
 
-	if err := json.Unmarshal(data, &val); err == nil {
-		if len(val.One) > 0 || len(val.Many) > 0 {
-			return val, nil
+	if err := json.Unmarshal(data, &raw); err == nil {
+		if _, ok := raw["changes"]; ok {
+			err = json.Unmarshal(data, &val)
+			if err == nil {
+				return val, err
+			}
 		}
 	}
 
