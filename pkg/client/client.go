@@ -110,6 +110,10 @@ func NewUbusRPC(ctx context.Context, opts *ClientOptions) (*UbusRPC, error) {
 
 func (u *UbusRPC) do(ctx context.Context) (r Response, err error) {
 	err = u.clientset.RPCClient.CallContext(ctx, &r, "call", u.Call.asParams()...)
+	if len(r) == 0 {
+		err = errors.New("empty response")
+		return nil, err
+	}
 	if r[0].(ExitCode) != 0 {
 		err = errors.New(r[0].(ExitCode).Error())
 	}
