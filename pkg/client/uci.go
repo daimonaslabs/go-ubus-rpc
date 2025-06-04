@@ -184,7 +184,10 @@ type UCIConfigsOptions struct{}
 func (UCIConfigsOptions) isOptsType() {}
 
 func (opts UCIConfigsOptions) GetResult(p Response) (u UCIConfigsResult, err error) {
-	if len(p) > 1 {
+
+	if len(p) == 0 {
+		return u, errors.New("empty response")
+	} else if len(p) > 1 {
 		data, _ := json.Marshal(p[1])
 		switch p[1].(type) {
 		case configsResult:
