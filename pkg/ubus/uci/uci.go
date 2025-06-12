@@ -7,25 +7,30 @@ import (
 
 const (
 	// the names of all the default configs managed by UCI
-	DHCP     = ConfigName("dhcp")
-	Dropbear = ConfigName("dropbear")
-	Firewall = ConfigName("firewall")
-	LuCI     = ConfigName("luci")
-	Network  = ConfigName("network")
-	RPCD     = ConfigName("rpcd")
-	System   = ConfigName("system")
-	UBootEnv = ConfigName("ubootenv")
-	UCITrack = ConfigName("ucitrack")
-	UHTTPd   = ConfigName("uhttpd")
-	Wireless = ConfigName("wireless")
+	DHCP     = "dhcp"
+	Dropbear = "dropbear"
+	Firewall = "firewall"
+	LuCI     = "luci"
+	Network  = "network"
+	RPCD     = "rpcd"
+	System   = "system"
+	UBootEnv = "ubootenv"
+	UCITrack = "ucitrack"
+	UHTTPd   = "uhttpd"
+	Wireless = "wireless"
 )
 
-type ConfigName string
-type SectionType string
+var (
+	Configs []string
+)
+
+func init() {
+	Configs = []string{DHCP, Dropbear, Firewall, LuCI, Network, RPCD, System, UBootEnv, UCITrack, UHTTPd, Wireless}
+}
 
 type UCIConfigSection interface {
 	IsAnonymous() bool
-	GetType() SectionType
+	GetType() string
 	GetName() string
 	GetIndex() int
 }
@@ -33,17 +38,17 @@ type UCIConfigSection interface {
 // implements UCIConfigSection
 // implements json.Marshaler and json.Unmarshaler
 type UCIConfigOptionsStatic struct {
-	Anonymous bool        `json:".anonymous,omitempty"`
-	Type      SectionType `json:".type,omitempty"`
-	Name      string      `json:".name,omitempty"`
-	Index     int         `json:".index,omitempty"`
+	Anonymous bool   `json:".anonymous,omitempty"`
+	Type      string `json:".type,omitempty"`
+	Name      string `json:".name,omitempty"`
+	Index     int    `json:".index,omitempty"`
 }
 
 func (s UCIConfigOptionsStatic) IsAnonymous() bool {
 	return s.Anonymous
 }
 
-func (s UCIConfigOptionsStatic) GetType() SectionType {
+func (s UCIConfigOptionsStatic) GetType() string {
 	return s.Type
 }
 

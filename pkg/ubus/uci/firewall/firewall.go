@@ -6,15 +6,23 @@ import (
 
 const (
 	// the name of this config
-	Config = uci.ConfigName("firewall")
+	Config = "firewall"
 
 	// these are static values for the uci.UCIConfigOptionsStatic.Type field
-	Defaults   = uci.SectionType("defaults")
-	Forwarding = uci.SectionType("forwarding")
-	Redirect   = uci.SectionType("redirect")
-	Rule       = uci.SectionType("rule")
-	Zone       = uci.SectionType("zone")
+	Defaults   = "defaults"
+	Forwarding = "forwarding"
+	Redirect   = "redirect"
+	Rule       = "rule"
+	Zone       = "zone"
 )
+
+var (
+	Sections []string
+)
+
+func init() {
+	Sections = []string{Defaults, Forwarding, Redirect, Rule, Zone}
+}
 
 // Used by RuleSection.ICMPType
 var ICMPTypes = []string{

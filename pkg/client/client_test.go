@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"slices"
 	"testing"
+	"time"
 
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
@@ -33,6 +34,25 @@ func checkErr(t *testing.T, err error) {
 	if err != nil {
 		t.Error(err)
 	}
+}
+
+func TestEmptyResponse(t *testing.T) {
+	ctx := context.Background()
+	opts := ClientOptions{Username: *username, Password: *password, URL: *url, Timeout: 1}
+	rpc, err := NewUbusRPC(ctx, &opts)
+	if err != nil {
+		log.Fatalln("error creating ubus client")
+	}
+
+	time.Sleep(1 * time.Second)
+	uciConfigsOpts := UCIConfigsOptions{}
+	response, err := rpc.UCI().Configs(ctx, uciConfigsOpts)
+	if err == nil {
+		t.Error("exptected error")
+	} else if response != nil {
+		t.Error("expected empty response")
+	}
+
 }
 
 func TestUCIAddSetDelete(t *testing.T) {
@@ -89,8 +109,7 @@ func TestUCIAddSetDelete(t *testing.T) {
 
 func TestUCIConfigs(t *testing.T) {
 	ctx, rpc := prepare()
-	expected := configsResult{Configs: []uci.ConfigName{uci.DHCP, uci.Dropbear, uci.Firewall, uci.LuCI,
-		uci.Network, uci.RPCD, uci.System, uci.UBootEnv, uci.UCITrack, uci.UHTTPd, uci.Wireless}}
+	expected := configsResult{Configs: uci.Configs}
 
 	uciConfigsOpts := UCIConfigsOptions{}
 	response, err := rpc.UCI().Configs(ctx, uciConfigsOpts)
