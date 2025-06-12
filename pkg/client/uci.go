@@ -229,6 +229,8 @@ func (UCIGetOptions) isOptsType() {}
 func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 	if len(p) == 0 {
 		return u, errors.New("empty response")
+	} else if len(p) == 1 {
+		return u, err
 	} else if len(p) > 1 {
 		switch obj := p[1].(type) {
 		case valueResult:
