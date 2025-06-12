@@ -4,39 +4,173 @@ import (
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
 )
 
-// TODO
+const (
+	// the name of this config
+	Config = "dhcp"
+
+	// these are static values for the uci.UCIConfigOptionsStatic.Type field
+	Boot       = "boot"
+	DHCP       = "dhcp"
+	DNSMasq    = "dnsmasq"
+	Host       = "host"
+	HostRecord = "hostrecord"
+	Relay      = "relay"
+)
+
+var (
+	Sections []string
+)
+
+func init() {
+	Sections = []string{Boot, DHCP, DNSMasq, Host, HostRecord, Relay}
+}
+
 type BootSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
+	BootSectionOptions         `json:",inline"`
 }
 
 func (in *BootSection) DeepCopyInto(out *BootSection) {
 	*out = *in
 }
 
-// TODO
-type ClientSection struct {
-	uci.UCIConfigOptionsStatic `json:",inline"`
+type BootSectionOptions struct {
+	// Additional options to be added for this network-id. If you specify this, you also need to specify
+	// the network-id.
+	DHCPOption []string `json:"dhcp_option,omitempty"`
+	// The filename the host should request from the boot server.
+	Filename string `json:"filename,omitempty"`
+	// DHCPption will always be sent even if the client does not ask for it in the parameter request list. This
+	// is sometimes needed, for example when sending options to PXELinux.
+	Force uci.StringBool `json:"force,omitempty"`
+	// Dnsmasq instance to which the boot section is bound. If not specified the section is valid for all
+	// dnsmasq instances.
+	Instance string `json:"instance,omitempty"`
+	// The tag (aka network-id) these boot options should apply to. Applies to all clients if left unspecified.
+	NetworkID string `json:"networkid,omitempty"`
+	// The IP address of the boot server.
+	ServerAddress string `json:"serveraddress,omitempty"`
+	// The hostname of the boot server.
+	ServerName string `json:"servername,omitempty"`
 }
 
-func (in *ClientSection) DeepCopyInto(out *ClientSection) {
-	*out = *in
-}
-
-// TODO
 type DHCPSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
+	DHCPSectionOptions         `json:",inline"`
 }
 
 func (in *DHCPSection) DeepCopyInto(out *DHCPSection) {
 	*out = *in
 }
 
+type DHCPSectionOptions struct {
+	// Specifies whether DHCPv4 server should be enabled (server) or disabled (disabled).
+	DHCPv4 string `json:"dhcpv4,omitempty"`
+	// Specifies whether DHCPv6 server should be enabled (server), relayed (relay) or disabled (disabled).
+	DHCPv6 string `json:"dhcpv6,omitempty"`
+	// The ID dhcp_option here must be with written with an underscore. OpenWrt will translate this to
+	// --dhcp-option, with a hyphen, as ultimately used by dnsmasq. Multiple option values can be given for
+	// this network-id, with a a space between them and the total string between “”. E.g. '26,1470' or
+	// 'option:mtu, 1470' that can assign an MTU per DHCP. Your client must accept MTU by DHCP for this to work.
+	DHCPOption []string `json:"dhcp_option,omitempty"`
+	// Exactly the same as dhcp_option (note the underscores), but it will be translated to --dhcp-option-force,
+	// meaning that the DHCP option will be sent regardless on whether the client requested it.
+	DHCPOptionForce []string `json:"dhcp_option_force,omitempty"`
+	// DNS servers to announce on the network. Only IPv6 addresses are accepted. To configure IPv4 DNS servers,
+	// use DHCPOption.
+	DNS []string `json:"dns,omitempty"`
+	// Announce the IPv6 address of interface as DNS service if the list of dns option is empty.
+	DNSService uci.StringBool `json:"dns_service,omitempty"`
+	// Dynamically allocate client addresses, if set to 0 only clients present in the ethers files are served.
+	DynamicDHCP uci.StringBool `json:"dynamicdhcp,omitempty"`
+	// Forces DHCP serving on the specified interface even if another DHCP server is detected on the same network
+	// segment.
+	Force uci.StringBool `json:"force,omitempty"`
+	// Specifies whether dnsmasq should ignore this pool if set to "1".
+	Ignore uci.StringBool `json:"ignore,omitempty"`
+	// Dnsmasq instance to which the dhcp section is bound; if not specified the section is valid for all dnsmasq
+	// instances.
+	Instance string `json:"instance,omitempty"`
+	// Specifies the interface associated with this DHCP address pool; must be one of the interfaces defined in
+	// /etc/config/network.
+	Interface string `json:"interface,omitempty"`
+	// Specifies the lease time of addresses handed out to clients, for example 12h or 30m.
+	LeaseTime string `json:"leasetime,omitempty"`
+	// Specifies the size of the address pool (e.g. with start=100, limit=150, maximum address will be .249).
+	Limit int `json:"limit,omitempty"`
+	// Specifies whether DHCPv6, RA and NDP in relay mode is a master interface or not.
+	Master uci.StringBool `json:"master,omitempty"`
+	// The dhcp functionality defined in the dhcp section is limited to the interface indicated here through
+	// its network-id. In case omitted the system tries to know the network-id via the interface setting in this
+	// dhcp section, through consultation of /etc/config/network. Some IDs get assigned dynamically, are not provided
+	// by network, but still can be set here.
+	NetworkID string `json:"networkid,omitempty"`
+	// Specifies whether NDP should be relayed (relay) or disabled (disabled).
+	NDP string `json:"ndp,omitempty"`
+	// Ignore neighbor messages on slave enabled ("1") interfaces.
+	NDProxySlave uci.StringBool `json:"ndproxy_slave,omitempty"`
+	// Learn routes from NDP.
+	NDProxyRouting uci.StringBool `json:"ndproxy_routing,omitempty"`
+	// Specifies whether Router Advertisements should be enabled (server), relayed (relay) or disabled (disabled).
+	RA string `json:"ra,omitempty"`
+	// Default router lifetime in the RA message will be set if default route is present and a global IPv6 address (0)
+	// or if default route is present but no global IPv6 address (1) or neither of both conditions (2).
+	RADefault int `json:"ra_default,omitempty"`
+	// List of RA flags to be advertised in RA messages:
+	//	managed-config - get address and other information from DHCPv6 server. If this flag is set, other-config flag is redundant.
+	//	other-config - get other configuration from DHCPv6 server (such as DNS servers).
+	//	home-agent - see IETF docs for details.
+	//	none.
+	// OpenWrt since version 21.02 configures managed-config and other-config by default.
+	RAFlags []string `json:"ra_flags,omitempty"`
+	// Advertised current hop limit (0-255).
+	RAHopLimit int `json:"ra_hoplimit,omitempty"`
+	// Maximum advertised MTU.
+	RAMTU int `json:"ra_mtu,omitempty"`
+	// This option is deprecated. Use ra_flags and ra_slaac options instead.
+	// RA management mode : no M-Flag but A-Flag (0), both M and A flags (1), M flag but not A flag (2).
+	RAManagement int `json:"ra_management,omitempty"`
+	// Maximum time interval between RAs (in seconds).
+	RAMaxInterval int `json:"ra_maxinterval,omitempty"`
+	// Minimum time interval between RAs (in seconds) .
+	RAMinInterval int `json:"ra_mininterval,omitempty"`
+	// Announce prefixes as offlink ("1") in RA messages.
+	RAOfflink uci.StringBool `json:"ra_offlink,omitempty"`
+	// Announce routes with either high (high), medium (medium) or low (low) priority in RAs.
+	RAPreference string `json:"ra_preference,omitempty"`
+	// Advertised reachable time (in milliseconds) (0-3600000).
+	RAReachableTime int `json:"ra_reachabletime,omitempty"`
+	// Advertised NS retransmission time (in milliseconds) (0-60000).
+	RARetransTime int `json:"ra_retranstime,omitempty"`
+	// Announce DNS configuration in RA messages (RFC8106).
+	RADNS uci.StringBool `json:"ra_dns,omitempty"`
+	// Announce SLAAC for a prefix (that is, set the A flag in RA messages).
+	RASLAAC uci.StringBool `json:"ra_slaac,omitempty"`
+	// Advertised router lifetime (in seconds).
+	RALifetime int `json:"ra_lifetime,omitempty"`
+	// Limit the preferred and valid lifetimes of the prefixes in the RA messages to the configured DHCP leasetime.
+	RAUseLeaseTime uci.StringBool `json:"ra_useleasetime,omitempty"`
+	// Specifies the offset from the network address of the underlying interface to calculate the minimum address that may be
+	// leased to clients. It may be greater than 255 to span subnets.
+	Start int `json:"start,omitempty"`
+	// List of tags that dnsmasq needs to match to use with --dhcp-range.
+	Tag []string `json:"tag,omitempty"`
+}
+
 type DnsmasqSection struct {
+	uci.UCIConfigOptionsStatic `json:",inline"`
+	DnsmasqSectionOptions      `json:",inline"`
+}
+
+func (in *DnsmasqSection) DeepCopyInto(out *DnsmasqSection) {
+	*out = *in
+}
+
+type DnsmasqSectionOptions struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
 	// List of IP addresses for queried domains. See the dnsmasq man page for syntax details.
 	Address []string `json:"address,omitempty"`
 	// Add the local domain as search directive in resolv.conf.
-	// +optional
 	AddLocalDomain uci.StringBool `json:"add_local_domain,omitempty"`
 	// Add A, AAAA, and PTR records for this router only on DHCP served LAN.
 	// Enhanced function available since OpenWRT 18.06 with option AddLocalFQDN
@@ -76,7 +210,7 @@ type DnsmasqSection struct {
 	Authoritative uci.StringBool `json:"authoritative,omitempty"`
 	// IP addresses to convert into NXDOMAIN responses (to counteract “helpful” upstream DNS servers that never
 	// return NXDOMAIN).
-	BogusNXDOMAIN []uci.IP `json:"bogusnxdomain,omitempty"`
+	BogusNXDOMAIN []string `json:"bogusnxdomain,omitempty"`
 	// Reject reverse lookups to private IP ranges where no corresponding entry exists in /etc/hosts.
 	BogusPriv uci.StringBool `json:"boguspriv,omitempty"`
 	// When set to 0, use each network interface's DNS address in the local /etc/resolv.conf. Normally, only
@@ -137,7 +271,7 @@ type DnsmasqSection struct {
 	// Store DHCP leases in this file.
 	LeaseFile string `json:"leasefile,omitempty"`
 	// Listen only on the specified IP addresses. If unspecified, listen on IP addresses from each interface.
-	ListenAddress []uci.IP `json:"listen_address,omitempty"`
+	ListenAddress []string `json:"listen_address,omitempty"`
 	// Look up DNS entries for this domain from /etc/hosts. This follows the same syntax as Server entries.
 	// See the dnsmasq man page for more details.
 	Local string `json:"local,omitempty"`
@@ -234,16 +368,47 @@ type DnsmasqSection struct {
 	TFTPRoot string `json:"tftp_root,omitempty"`
 }
 
-func (in *DnsmasqSection) DeepCopyInto(out *DnsmasqSection) {
-	*out = *in
-}
-
-// TODO
 type HostSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
+	HostSectionOptions         `json:",inline"`
 }
 
 func (in *HostSection) DeepCopyInto(out *HostSection) {
+	*out = *in
+}
+
+type HostSectionOptions struct {
+	// Force broadcast DHCP response.
+	Broadcast uci.StringBool `json:"broadcast,omitempty"`
+	// Add static forward and reverse DNS entries for this host.
+	DNS uci.StringBool `json:"dns,omitempty"`
+	// The DHCPv6-DUID of this host.
+	DUID string `json:"duid,omitempty"`
+	// The IPv6 interface identifier (address suffix) as hexadecimal number (max. 16 chars, 64 bits, 8 bytes).
+	HostID string `json:"hostid,omitempty"`
+	// The IP address to be used for this host, or ignore to ignore any DHCP request from this host.
+	IP string `json:"ip,omitempty"`
+	// Dnsmasq instance to which the host section is bound; if not specified the section is valid for all dnsmasq instances.
+	Instance string `json:"instance,omitempty"`
+	// Host-specific lease time, e.g. 2m, 3h, 5d.
+	LeaseTime string `json:"leasetime,omitempty"`
+	// The hardware address(es) of this host, separated by spaces.
+	MAC string `json:"mac,omitempty"`
+	// If specified the section will apply only to requests having all the tags;
+	// incoming interface name is always auto-assigned, other tags can be added by vendorclass/userclass/etc. sections.
+	MatchTag []string `json:"match_tag,omitempty"`
+	// Optional hostname to assign.
+	Name string `json:"name,omitempty"`
+	// Set the given tag for matching hosts.
+	Tag string `json:"tag,omitempty"`
+}
+
+// TODO
+type HostRecordSection struct {
+	uci.UCIConfigOptionsStatic `json:",inline"`
+}
+
+func (in *HostRecordSection) DeepCopyInto(out *HostRecordSection) {
 	*out = *in
 }
 

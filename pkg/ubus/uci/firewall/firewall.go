@@ -199,7 +199,7 @@ type RedirectSectionOptions struct {
 	// If specified, only match traffic during the given days of the month, e.g. 2 5 30 to only match on every 2nd,
 	// 5th and 30rd day of the month. The list can be inverted by prefixing it with an exclamation mark,
 	// e.g. ! 31 to always match but on the 31st of the month.
-	Monthdays uci.Time `json:"monthdays,omitempty"`
+	Monthdays string `json:"monthdays,omitempty"`
 	// Name of redirect.
 	Name string `json:"name,omitempty"`
 	// Match incoming traffic using the given protocol. Can be one (or several when using list syntax) of tcp, udp,
@@ -218,28 +218,28 @@ type RedirectSectionOptions struct {
 	Src string `json:"src,omitempty"`
 	// For DNAT, match incoming traffic directed at the given destination IP address. For SNAT rewrite the source
 	// address to the given address.
-	SrcDIP uci.IP `json:"src_dip,omitempty"`
+	SrcDIP string `json:"src_dip,omitempty"`
 	// For DNAT, match incoming traffic directed at the given destination port or port range on this host. For
 	// SNAT rewrite the source ports to the given value.
 	SrcDPort string `json:"src_dport,omitempty"`
 	// Match incoming traffic from the specified source IP address.
-	SrcIP uci.IP `json:"src_ip,omitempty"`
+	SrcIP string `json:"src_ip,omitempty"`
 	// Match incoming traffic from the specified MAC address.
-	SrcMAC uci.MAC `json:"src_mac,omitempty"`
+	SrcMAC string `json:"src_mac,omitempty"`
 	// Match incoming traffic originating from the given source port or port range on the client host.
 	SrcPort string `json:"src_port,omitempty"`
 	// If specifed, only match traffic after the given date (inclusive).
-	StartDate uci.Time `json:"start_date,omitempty"`
+	StartDate string `json:"start_date,omitempty"`
 	// If specified, only match traffic after the given time of day (inclusive).
-	StartTime uci.Time `json:"start_time,omitempty"`
+	StartTime string `json:"start_time,omitempty"`
 	// If specified, only match traffic before the given date (inclusive).
-	StopDate uci.Time `json:"stop_date,omitempty"`
+	StopDate string `json:"stop_date,omitempty"`
 	// If specified, only match traffic before the given time of day (inclusive).
-	StopTime uci.Time `json:"stop_time,omitempty"`
+	StopTime string `json:"stop_time,omitempty"`
 	// If specified, only match traffic during the given week days, e.g. sun mon thu fri to only match on Sundays,
 	// Mondays, Thursdays and Fridays. The list can be inverted by prefixing it with an exclamation mark,
 	// e.g. ! sat sun to always match but on Saturdays and Sundays.
-	Weekdays uci.Time `json:"weekdays,omitempty"`
+	Weekdays string `json:"weekdays,omitempty"`
 	// Firewall action (ACCEPT, REJECT, DROP, MARK, NOTRACK) for matched traffic.
 	Target string `json:"target,omitempty"`
 	// Treat all given time values as UTC time instead of local time.
@@ -294,7 +294,7 @@ type RuleSectionOptions struct {
 	// If specified, only match traffic during the given days of the month, e.g. 2 5 30 to only match on every 2nd,
 	// 5th and 30rd day of the month. The list can be inverted by prefixing it with an exclamation mark,
 	// e.g. ! 31 to always match but on the 31st of the month.
-	Monthdays uci.Time `json:"monthdays,omitempty"`
+	Monthdays string `json:"monthdays,omitempty"`
 	// Name of rule.
 	Name string `json:"name,omitempty"`
 	// Match incoming traffic using the given protocol. Can be one (or several when using list syntax) of tcp,
@@ -312,20 +312,20 @@ type RuleSectionOptions struct {
 	// the rule applies to output traffic.
 	Src string `json:"src,omitempty"`
 	// Match incoming traffic from the specified source IP address, CIDR notations can be used, see note above.
-	SrcIP uci.IP `json:"src_ip,omitempty"`
+	SrcIP string `json:"src_ip,omitempty"`
 	// Match incoming traffic from the specified MAC address.
-	SrcMAC uci.MAC `json:"src_mac,omitempty"`
+	SrcMAC string `json:"src_mac,omitempty"`
 	// Match incoming traffic from the specified source port or port range, if relevant proto is specified.
 	// Multiple ports can be specified like '80 443 465' 1.
 	SrcPort string `json:"src_port,omitempty"`
 	// If specifed, only match traffic after the given date (inclusive).
-	StartDate uci.Time `json:"start_date,omitempty"`
+	StartDate string `json:"start_date,omitempty"`
 	// If specified, only match traffic after the given time of day (inclusive).
-	StartTime uci.Time `json:"start_time,omitempty"`
+	StartTime string `json:"start_time,omitempty"`
 	// If specified, only match traffic before the given date (inclusive).
-	StopDate uci.Time `json:"stop_date,omitempty"`
+	StopDate string `json:"stop_date,omitempty"`
 	// If specified, only match traffic before the given time of day (inclusive).
-	StopTime uci.Time `json:"stop_time,omitempty"`
+	StopTime string `json:"stop_time,omitempty"`
 	// Firewall action (ACCEPT, REJECT, DROP, MARK, NOTRACK) for matched traffic.
 	Target string `json:"target,omitempty"`
 	// Treat all given time values as UTC time instead of local time.
@@ -333,7 +333,7 @@ type RuleSectionOptions struct {
 	// If specified, only match traffic during the given week days, e.g. sun mon thu fri to only match on Sundays,
 	// Mondays, Thursdays and Fridays. The list can be inverted by prefixing it with an exclamation mark,
 	// e.g. ! sat sun to always match but on Saturdays and Sundays.
-	Weekdays uci.Time `json:"weekdays,omitempty"`
+	Weekdays string `json:"weekdays,omitempty"`
 }
 
 func (RuleSectionOptions) IsUCIConfigSectionOptions() {}

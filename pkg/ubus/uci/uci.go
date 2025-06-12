@@ -107,10 +107,4 @@ func ToStringBool(b bool) (s StringBool) {
 	}
 }
 
-// TODO make these safer, check for the right format within the strings. split into
-// separate, more specific types as needed. see FirewallConfig.RuleSection for all the
-// different time and date options needed.
-type IP string
-type MAC string
 type StringBool string
-type Time string
