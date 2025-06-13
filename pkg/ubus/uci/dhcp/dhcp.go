@@ -9,12 +9,20 @@ const (
 	Config = "dhcp"
 
 	// these are static values for the uci.UCIConfigOptionsStatic.Type field
-	Boot       = "boot"
-	DHCP       = "dhcp"
-	DNSMasq    = "dnsmasq"
-	Host       = "host"
-	HostRecord = "hostrecord"
-	Relay      = "relay"
+	Boot        = "boot"
+	CircuitID   = "circuitid"
+	DHCP        = "dhcp"
+	Dnsmasq     = "dnsmasq"
+	Host        = "host"
+	HostRecord  = "hostrecord"
+	MAC         = "mac"
+	Odhcpd      = "odhcpd"
+	Relay       = "relay"
+	RemoteID    = "remoteid"
+	SubscrID    = "subscrid"
+	Tag         = "tag"
+	UserClass   = "userclass"
+	VendorClass = "vendorclass"
 )
 
 var (
@@ -22,7 +30,7 @@ var (
 )
 
 func init() {
-	Sections = []string{Boot, DHCP, DNSMasq, Host, HostRecord, Relay}
+	Sections = []string{Boot, DHCP, Dnsmasq, Host, HostRecord, Relay}
 }
 
 type BootSection struct {
@@ -37,7 +45,7 @@ func (in *BootSection) DeepCopyInto(out *BootSection) {
 type BootSectionOptions struct {
 	// Additional options to be added for this network-id. If you specify this, you also need to specify
 	// the network-id.
-	DHCPOption []string `json:"dhcp_option,omitempty"`
+	DHCPOption uci.DynamicList `json:"dhcp_option,omitempty"`
 	// The filename the host should request from the boot server.
 	Filename string `json:"filename,omitempty"`
 	// DHCPption will always be sent even if the client does not ask for it in the parameter request list. This
@@ -52,6 +60,26 @@ type BootSectionOptions struct {
 	ServerAddress string `json:"serveraddress,omitempty"`
 	// The hostname of the boot server.
 	ServerName string `json:"servername,omitempty"`
+}
+
+type CircuitIDSection struct {
+	uci.UCIConfigOptionsStatic `json:",inline"`
+	CircuitIDSectionOptions    `json:",inline"`
+}
+
+func (in *CircuitIDSection) DeepCopyInto(out *CircuitIDSection) {
+	*out = *in
+}
+
+type CircuitIDSectionOptions struct {
+	// Matches the circuit ID as sent by the relay agent, as defined in RFC3046.
+	CircuitID string `json:"circuitid,omitempty"`
+	// The tag that matching clients will be assigned.
+	NetworkID string `json:"networkid,omitempty"`
+	// Additional options to be added for this tag aka networkid.
+	DHCPOption uci.DynamicList `json:"dhcp_option,omitempty"`
+	// Whether to send the additional options from dhcp_option list to the clients that didn't request them.
+	Force uci.StringBool `json:"force,omitempty"`
 }
 
 type DHCPSection struct {
@@ -72,7 +100,7 @@ type DHCPSectionOptions struct {
 	// --dhcp-option, with a hyphen, as ultimately used by dnsmasq. Multiple option values can be given for
 	// this network-id, with a a space between them and the total string between “”. E.g. '26,1470' or
 	// 'option:mtu, 1470' that can assign an MTU per DHCP. Your client must accept MTU by DHCP for this to work.
-	DHCPOption []string `json:"dhcp_option,omitempty"`
+	DHCPOption uci.DynamicList `json:"dhcp_option,omitempty"`
 	// Exactly the same as dhcp_option (note the underscores), but it will be translated to --dhcp-option-force,
 	// meaning that the DHCP option will be sent regardless on whether the client requested it.
 	DHCPOptionForce []string `json:"dhcp_option_force,omitempty"`
@@ -97,7 +125,7 @@ type DHCPSectionOptions struct {
 	// Specifies the lease time of addresses handed out to clients, for example 12h or 30m.
 	LeaseTime string `json:"leasetime,omitempty"`
 	// Specifies the size of the address pool (e.g. with start=100, limit=150, maximum address will be .249).
-	Limit int `json:"limit,omitempty"`
+	Limit string `json:"limit,omitempty"`
 	// Specifies whether DHCPv6, RA and NDP in relay mode is a master interface or not.
 	Master uci.StringBool `json:"master,omitempty"`
 	// The dhcp functionality defined in the dhcp section is limited to the interface indicated here through
@@ -152,7 +180,7 @@ type DHCPSectionOptions struct {
 	RAUseLeaseTime uci.StringBool `json:"ra_useleasetime,omitempty"`
 	// Specifies the offset from the network address of the underlying interface to calculate the minimum address that may be
 	// leased to clients. It may be greater than 255 to span subnets.
-	Start int `json:"start,omitempty"`
+	Start string `json:"start,omitempty"`
 	// List of tags that dnsmasq needs to match to use with --dhcp-range.
 	Tag []string `json:"tag,omitempty"`
 }
@@ -217,7 +245,7 @@ type DnsmasqSectionOptions struct {
 	// the loopback address is used, and all queries go through dnsmasq.
 	CacheLocal uci.StringBool `json:"cachelocal,omitempty"`
 	// Size of dnsmasq query cache.
-	CacheSize int `json:"cachesize,omitempty"`
+	CacheSize string `json:"cachesize,omitempty"`
 	// Directory with additional configuration files.
 	ConfDir string `json:"confdir,omitempty"`
 	// Enable DBus messaging for dnsmasq.
@@ -252,7 +280,7 @@ type DnsmasqSectionOptions struct {
 	// nameservers. If the name is not known from /etc/hosts or DHCP then a “not found” answer is returned.
 	DomainNeeded uci.StringBool `json:"domainneeded,omitempty"`
 	// Specify the largest EDNS.0 UDP packet which is supported by the DNS forwarder.
-	EDNSPacketMax int `json:"ednspacket_max,omitempty"`
+	EDNSPacketMax string `json:"ednspacket_max,omitempty"`
 	// Enable the builtin TFTP server.
 	EnableTFTP uci.StringBool `json:"enable_tftp,omitempty"`
 	// Add the local domain part to names found in /etc/hosts.
@@ -321,7 +349,7 @@ type DnsmasqSectionOptions struct {
 	// Don't read upstream servers from /etc/resolv.conf which is linked to resolvfile by default.
 	NoResolv uci.StringBool `json:"noresolv,omitempty"`
 	// Bind only configured interface addresses, instead of the wildcard address.
-	NoWildcard uci.StringBool `json:"nowildcard,omitempty"`
+	NonWildcard uci.StringBool `json:"nonwildcard,omitempty"`
 	// Interfaces dnsmasq should not listen on.
 	NotInterface []string `json:"notinterface,omitempty"`
 	// Listening port for DNS queries, disables DNS server functionality if set to 0.
@@ -368,6 +396,22 @@ type DnsmasqSectionOptions struct {
 	TFTPRoot string `json:"tftp_root,omitempty"`
 }
 
+type HostRecordSection struct {
+	uci.UCIConfigOptionsStatic `json:",inline"`
+	HostRecordSectionOptions   `json:",inline"`
+}
+
+func (in *HostRecordSection) DeepCopyInto(out *HostRecordSection) {
+	*out = *in
+}
+
+type HostRecordSectionOptions struct {
+	// The domain name.
+	Name string `json:"name,omitempty"`
+	// The IP address to resolve the name to.
+	IP string `json:"ip,omitempty"`
+}
+
 type HostSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
 	HostSectionOptions         `json:",inline"`
@@ -403,29 +447,159 @@ type HostSectionOptions struct {
 	Tag string `json:"tag,omitempty"`
 }
 
-// TODO
-type HostRecordSection struct {
+type MACSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
+	MACSectionOptions          `json:",inline"`
 }
 
-func (in *HostRecordSection) DeepCopyInto(out *HostRecordSection) {
+func (in *MACSection) DeepCopyInto(out *MACSection) {
 	*out = *in
 }
 
-// TODO
-type IPSetSection struct {
-	uci.UCIConfigOptionsStatic `json:",inline"`
+type MACSectionOptions struct {
+	// Hardware address of the client.
+	MAC string `json:"mac,omitempty"`
+	// The tag that matching clients will be assigned.
+	NetworkID string `json:"networkid,omitempty"`
+	// Additional options to be added for this tag aka networkid.
+	DHCPOption []string `json:"dhcp_option,omitempty"`
+	// Whether to send the additional options from dhcp_option list to the clients that didn't request them.
+	Force uci.StringBool `json:"force,omitempty"`
 }
 
-func (in *IPSetSection) DeepCopyInto(out *IPSetSection) {
+type OdhcpdSection struct {
+	uci.UCIConfigOptionsStatic `json:",inline"`
+	OdhcpdSectionOptions       `json:",inline"`
+}
+
+func (in *OdhcpdSection) DeepCopyInto(out *OdhcpdSection) {
 	*out = *in
 }
 
-// TODO
+type OdhcpdSectionOptions struct {
+	MainDHCP     uci.StringBool `json:"maindhcp,omitempty"`
+	LeaseFile    string         `json:"leasefile,omitempty"`
+	LeaseTrigger string         `json:"leasetrigger,omitempty"`
+	Legacy       uci.StringBool `json:"legacy,omitempty"`
+	LogLevel     string         `json:"loglevel,omitempty"` // TODO add a uci.StringInt type and use here
+}
+
 type RelaySection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
+	RelaySectionOptions        `json:",inline"`
 }
 
 func (in *RelaySection) DeepCopyInto(out *RelaySection) {
 	*out = *in
+}
+
+type RelaySectionOptions struct {
+	// A unique name for the section, which must be different to every other section's name.
+	ID string `json:"id,omitempty"`
+	// Logical network interface where the destination DHCP server is located.
+	Interface string `json:"interface,omitempty"`
+	// IP address to listen for DHCP requests.
+	LocalAddr string `json:"local_addr,omitempty"`
+	// IP address of the upstream DHCP server accessible through the network given by the interface option. DHCP
+	// responses picked up on the far subnet will be relayed to this server. This address must be routed correctly
+	// (i.e. you can ping it successfully from the OpenWrt command line).
+	ServerAddr string `json:"server_addr,omitempty"`
+}
+
+type RemoteIDSection struct {
+	uci.UCIConfigOptionsStatic `json:",inline"`
+	RemoteIDSectionOptions     `json:",inline"`
+}
+
+func (in *RemoteIDSection) DeepCopyInto(out *RemoteIDSection) {
+	*out = *in
+}
+
+type RemoteIDSectionOptions struct {
+	// Matches the remote ID as sent by the relay agent, as defined in RFC3046.
+	RemoteID string `json:"remoteid,omitempty"`
+	// The tag that matching clients will be assigned.
+	NetworkID string `json:"networkid,omitempty"`
+	// Additional options to be added for this tag aka networkid.
+	DHCPOption []string `json:"dhcp_option,omitempty"`
+	// Whether to send the additional options from dhcp_option list to the clients that didn't request them.
+	Force uci.StringBool `json:"force,omitempty"`
+}
+
+type SubscrIDSection struct {
+	uci.UCIConfigOptionsStatic `json:",inline"`
+	SubscrIDSectionOptions     `json:",inline"`
+}
+
+func (in *SubscrIDSection) DeepCopyInto(out *SubscrIDSection) {
+	*out = *in
+}
+
+type SubscrIDSectionOptions struct {
+	// Matches the subscriber ID as sent by the relay agent, as defined in RFC3993.
+	SubscrID string `json:"subscrid,omitempty"`
+	// The tag that matching clients will be assigned.
+	NetworkID string `json:"networkid,omitempty"`
+	// Additional options to be added for this tag aka networkid.
+	DHCPOption []string `json:"dhcp_option,omitempty"`
+	// Whether to send the additional options from dhcp_option list to the clients that didn't request them.
+	Force uci.StringBool `json:"force,omitempty"`
+}
+
+type TagSection struct {
+	uci.UCIConfigOptionsStatic `json:",inline"`
+	TagSectionOptions          `json:",inline"`
+}
+
+func (in *TagSection) DeepCopyInto(out *TagSection) {
+	*out = *in
+}
+
+type TagSectionOptions struct {
+	// Additional options to be added for this tag aka networkid.
+	DHCPOption uci.DynamicList `json:"dhcp_option,omitempty"`
+	// Whether to send the additional options from dhcp_option list to the clients that didn't request them.
+	Force uci.StringBool `json:"force,omitempty"`
+}
+
+type UserClassSection struct {
+	uci.UCIConfigOptionsStatic `json:",inline"`
+	UserClassSectionOptions    `json:",inline"`
+}
+
+func (in *UserClassSection) DeepCopyInto(out *UserClassSection) {
+	*out = *in
+}
+
+type UserClassSectionOptions struct {
+	// String sent by the client representing the user of the client. dnsmasq performs a substring match on the user
+	// class string using this value.
+	UserClass string `json:"userclass,omitempty"`
+	// The tag that matching clients will be assigned.
+	NetworkID string `json:"networkid,omitempty"`
+	// Additional options to be added for this tag aka networkid.
+	DHCPOption []string `json:"dhcp_option,omitempty"`
+	// Whether to send the additional options from dhcp_option list to the clients that didn't request them.
+	Force uci.StringBool `json:"force,omitempty"`
+}
+
+type VendorClassSection struct {
+	uci.UCIConfigOptionsStatic `json:",inline"`
+	VendorClassSectionOptions  `json:",inline"`
+}
+
+func (in *VendorClassSection) DeepCopyInto(out *VendorClassSection) {
+	*out = *in
+}
+
+type VendorClassSectionOptions struct {
+	// String sent by the client representing the vendor of the client. dnsmasq performs a substring match on the
+	// vendor class string using this value.
+	VendorClass string `json:"vendorclass,omitempty"`
+	// The tag that matching clients will be assigned.
+	NetworkID string `json:"networkid,omitempty"`
+	// Additional options to be added for this tag aka networkid.
+	DHCPOption []string `json:"dhcp_option,omitempty"`
+	// Whether to send the additional options from dhcp_option list to the clients that didn't request them.
+	Force uci.StringBool `json:"force,omitempty"`
 }

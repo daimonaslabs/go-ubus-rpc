@@ -7,6 +7,7 @@ import (
 	"reflect"
 
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/dhcp"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
 )
 
@@ -238,6 +239,34 @@ func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 		case valuesResult:
 			for _, section := range obj.Values {
 				switch s := section.(type) {
+				case dhcp.BootSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.CircuitIDSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.DHCPSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.DnsmasqSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.HostSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.HostRecordSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.MACSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.OdhcpdSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.RelaySection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.RemoteIDSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.SubscrIDSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.TagSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.UserClassSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.VendorClassSection:
+					u.SectionArray = append(u.SectionArray, s)
 				case firewall.DefaultsSection:
 					u.SectionArray = append(u.SectionArray, s)
 				case firewall.ForwardingSection:
@@ -472,7 +501,7 @@ func (valueResult) isResultObject() {}
 // basically, one is a single object returned while the other is a set of them.
 // you can call json.Marshal and Unmarshal on them like normal and it will figure
 // out which one it is for you. if it is a single response like in the second example,
-// it will marshal it into the form of the first one but with only that object.
+// it will unmarshal it into the form of the first one but with only that object.
 type valuesResult struct {
 	Values map[string]uci.UCIConfigSection `json:"values"`
 }
@@ -560,6 +589,34 @@ func unmarshalRawSection(data []byte) (section uci.UCIConfigSection, err error) 
 	}
 
 	switch probe.Type {
+	case string(dhcp.Boot):
+		section, err = unmarshalRawResult[dhcp.BootSection](data)
+	case string(dhcp.CircuitID):
+		section, err = unmarshalRawResult[dhcp.CircuitIDSection](data)
+	case string(dhcp.DHCP):
+		section, err = unmarshalRawResult[dhcp.DHCPSection](data)
+	case string(dhcp.Dnsmasq):
+		section, err = unmarshalRawResult[dhcp.DnsmasqSection](data)
+	case string(dhcp.Host):
+		section, err = unmarshalRawResult[dhcp.HostSection](data)
+	case string(dhcp.HostRecord):
+		section, err = unmarshalRawResult[dhcp.HostRecordSection](data)
+	case string(dhcp.MAC):
+		section, err = unmarshalRawResult[dhcp.MACSection](data)
+	case string(dhcp.Odhcpd):
+		section, err = unmarshalRawResult[dhcp.OdhcpdSection](data)
+	case string(dhcp.Relay):
+		section, err = unmarshalRawResult[dhcp.RelaySection](data)
+	case string(dhcp.RemoteID):
+		section, err = unmarshalRawResult[dhcp.RemoteIDSection](data)
+	case string(dhcp.SubscrID):
+		section, err = unmarshalRawResult[dhcp.SubscrIDSection](data)
+	case string(dhcp.Tag):
+		section, err = unmarshalRawResult[dhcp.TagSection](data)
+	case string(dhcp.UserClass):
+		section, err = unmarshalRawResult[dhcp.UserClassSection](data)
+	case string(dhcp.VendorClass):
+		section, err = unmarshalRawResult[dhcp.VendorClassSection](data)
 	case string(firewall.Defaults):
 		section, err = unmarshalRawResult[firewall.DefaultsSection](data)
 	case string(firewall.Forwarding):

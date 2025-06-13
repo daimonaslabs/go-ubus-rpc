@@ -94,6 +94,8 @@ func (d DynamicList) MarshalJSON() ([]byte, error) {
 	return json.Marshal([]string(d))
 }
 
+type StringBool string
+
 const (
 	StringBoolFalse = StringBool("0")
 	StringBoolTrue  = StringBool("1")
@@ -106,5 +108,3 @@ func ToStringBool(b bool) (s StringBool) {
 		return StringBoolFalse
 	}
 }
-
-type StringBool string
