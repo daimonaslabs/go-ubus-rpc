@@ -10,6 +10,7 @@ import (
 
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/client"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/dhcp"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
 )
 
@@ -410,6 +411,34 @@ func (o *SetOptions) Run(c *cobra.Command) (err error) {
 	if err = checkConfig(o.Config); err == nil {
 		uciSetOpts := client.UCISetOptions{}
 		switch o.Type {
+		case string(dhcp.Boot):
+			uciSetOpts = unmarshalCLIValues[dhcp.BootSection](o)
+		case string(dhcp.CircuitID):
+			uciSetOpts = unmarshalCLIValues[dhcp.CircuitIDSection](o)
+		case string(dhcp.DHCP):
+			uciSetOpts = unmarshalCLIValues[dhcp.DHCPSection](o)
+		case string(dhcp.Dnsmasq):
+			uciSetOpts = unmarshalCLIValues[dhcp.DnsmasqSection](o)
+		case string(dhcp.Host):
+			uciSetOpts = unmarshalCLIValues[dhcp.HostSection](o)
+		case string(dhcp.HostRecord):
+			uciSetOpts = unmarshalCLIValues[dhcp.HostRecordSection](o)
+		case string(dhcp.MAC):
+			uciSetOpts = unmarshalCLIValues[dhcp.MACSection](o)
+		case string(dhcp.Odhcpd):
+			uciSetOpts = unmarshalCLIValues[dhcp.OdhcpdSection](o)
+		case string(dhcp.Relay):
+			uciSetOpts = unmarshalCLIValues[dhcp.RelaySection](o)
+		case string(dhcp.RemoteID):
+			uciSetOpts = unmarshalCLIValues[dhcp.RemoteIDSection](o)
+		case string(dhcp.SubscrID):
+			uciSetOpts = unmarshalCLIValues[dhcp.SubscrIDSection](o)
+		case string(dhcp.Tag):
+			uciSetOpts = unmarshalCLIValues[dhcp.TagSection](o)
+		case string(dhcp.UserClass):
+			uciSetOpts = unmarshalCLIValues[dhcp.UserClassSection](o)
+		case string(dhcp.VendorClass):
+			uciSetOpts = unmarshalCLIValues[dhcp.VendorClassSection](o)
 		case string(firewall.Defaults):
 			uciSetOpts = unmarshalCLIValues[firewall.DefaultsSectionOptions](o)
 		case string(firewall.Forwarding):
