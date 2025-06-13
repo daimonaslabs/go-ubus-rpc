@@ -62,6 +62,8 @@ type BootSectionOptions struct {
 	ServerName string `json:"servername,omitempty"`
 }
 
+func (BootSectionOptions) IsUCIConfigSectionOptions() {}
+
 type CircuitIDSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
 	CircuitIDSectionOptions    `json:",inline"`
@@ -81,6 +83,8 @@ type CircuitIDSectionOptions struct {
 	// Whether to send the additional options from dhcp_option list to the clients that didn't request them.
 	Force uci.StringBool `json:"force,omitempty"`
 }
+
+func (CircuitIDSectionOptions) IsUCIConfigSectionOptions() {}
 
 type DHCPSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
@@ -184,6 +188,8 @@ type DHCPSectionOptions struct {
 	// List of tags that dnsmasq needs to match to use with --dhcp-range.
 	Tag []string `json:"tag,omitempty"`
 }
+
+func (DHCPSectionOptions) IsUCIConfigSectionOptions() {}
 
 type DnsmasqSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
@@ -396,21 +402,7 @@ type DnsmasqSectionOptions struct {
 	TFTPRoot string `json:"tftp_root,omitempty"`
 }
 
-type HostRecordSection struct {
-	uci.UCIConfigOptionsStatic `json:",inline"`
-	HostRecordSectionOptions   `json:",inline"`
-}
-
-func (in *HostRecordSection) DeepCopyInto(out *HostRecordSection) {
-	*out = *in
-}
-
-type HostRecordSectionOptions struct {
-	// The domain name.
-	Name string `json:"name,omitempty"`
-	// The IP address to resolve the name to.
-	IP string `json:"ip,omitempty"`
-}
+func (DnsmasqSectionOptions) IsUCIConfigSectionOptions() {}
 
 type HostSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
@@ -447,6 +439,26 @@ type HostSectionOptions struct {
 	Tag string `json:"tag,omitempty"`
 }
 
+func (HostSectionOptions) IsUCIConfigSectionOptions() {}
+
+type HostRecordSection struct {
+	uci.UCIConfigOptionsStatic `json:",inline"`
+	HostRecordSectionOptions   `json:",inline"`
+}
+
+func (in *HostRecordSection) DeepCopyInto(out *HostRecordSection) {
+	*out = *in
+}
+
+type HostRecordSectionOptions struct {
+	// The domain name.
+	Name string `json:"name,omitempty"`
+	// The IP address to resolve the name to.
+	IP string `json:"ip,omitempty"`
+}
+
+func (HostRecordSectionOptions) IsUCIConfigSectionOptions() {}
+
 type MACSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
 	MACSectionOptions          `json:",inline"`
@@ -467,6 +479,8 @@ type MACSectionOptions struct {
 	Force uci.StringBool `json:"force,omitempty"`
 }
 
+func (MACSectionOptions) IsUCIConfigSectionOptions() {}
+
 type OdhcpdSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
 	OdhcpdSectionOptions       `json:",inline"`
@@ -477,12 +491,20 @@ func (in *OdhcpdSection) DeepCopyInto(out *OdhcpdSection) {
 }
 
 type OdhcpdSectionOptions struct {
-	MainDHCP     uci.StringBool `json:"maindhcp,omitempty"`
-	LeaseFile    string         `json:"leasefile,omitempty"`
-	LeaseTrigger string         `json:"leasetrigger,omitempty"`
-	Legacy       uci.StringBool `json:"legacy,omitempty"`
-	LogLevel     string         `json:"loglevel,omitempty"` // TODO add a uci.StringInt type and use here
+	// Use odhcpd as the main DHCPv4 service.
+	MainDHCP uci.StringBool `json:"maindhcp,omitempty"`
+	// Location of the lease/hostfile for DHCPv4 and DHCPv6.
+	LeaseFile string `json:"leasefile,omitempty"`
+	// Location of the lease trigger script.
+	LeaseTrigger string `json:"leasetrigger,omitempty"`
+	// Enable DHCPv4 if the 'dhcp' section contains a start option, but no dhcpv4 option set.
+	Legacy uci.StringBool `json:"legacy,omitempty"`
+	// Syslog level priority (0-7):
+	// 0=emer, 1=alert, 2=crit, 3=err, 4=warn, 5=notice, 6=info, 7=debug
+	LogLevel string `json:"loglevel,omitempty"` // TODO add a uci.StringInt type and use here
 }
+
+func (OdhcpdSectionOptions) IsUCIConfigSectionOptions() {}
 
 type RelaySection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
@@ -506,6 +528,8 @@ type RelaySectionOptions struct {
 	ServerAddr string `json:"server_addr,omitempty"`
 }
 
+func (RelaySectionOptions) IsUCIConfigSectionOptions() {}
+
 type RemoteIDSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
 	RemoteIDSectionOptions     `json:",inline"`
@@ -525,6 +549,8 @@ type RemoteIDSectionOptions struct {
 	// Whether to send the additional options from dhcp_option list to the clients that didn't request them.
 	Force uci.StringBool `json:"force,omitempty"`
 }
+
+func (RemoteIDSectionOptions) IsUCIConfigSectionOptions() {}
 
 type SubscrIDSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
@@ -546,6 +572,8 @@ type SubscrIDSectionOptions struct {
 	Force uci.StringBool `json:"force,omitempty"`
 }
 
+func (SubscrIDSectionOptions) IsUCIConfigSectionOptions() {}
+
 type TagSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
 	TagSectionOptions          `json:",inline"`
@@ -561,6 +589,8 @@ type TagSectionOptions struct {
 	// Whether to send the additional options from dhcp_option list to the clients that didn't request them.
 	Force uci.StringBool `json:"force,omitempty"`
 }
+
+func (TagSectionOptions) IsUCIConfigSectionOptions() {}
 
 type UserClassSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
@@ -583,6 +613,8 @@ type UserClassSectionOptions struct {
 	Force uci.StringBool `json:"force,omitempty"`
 }
 
+func (UserClassSectionOptions) IsUCIConfigSectionOptions() {}
+
 type VendorClassSection struct {
 	uci.UCIConfigOptionsStatic `json:",inline"`
 	VendorClassSectionOptions  `json:",inline"`
@@ -603,3 +635,5 @@ type VendorClassSectionOptions struct {
 	// Whether to send the additional options from dhcp_option list to the clients that didn't request them.
 	Force uci.StringBool `json:"force,omitempty"`
 }
+
+func (VendorClassSectionOptions) IsUCIConfigSectionOptions() {}
