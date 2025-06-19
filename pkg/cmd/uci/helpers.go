@@ -18,7 +18,7 @@ func checkConfig(c string) error {
 	}
 }
 
-func unmarshalCLIValues[S uci.UCIConfigSectionOptions](o *SetOptions) (u client.UCISetOptions) {
+func unmarshalCLIValues[S uci.ConfigSectionOptions](o *SetOptions) (u client.UCISetOptions) {
 	var s S
 	err := json.Unmarshal([]byte(o.Values), &s)
 	if err != nil {

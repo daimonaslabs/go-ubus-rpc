@@ -125,8 +125,8 @@ func (opts UCIAddOptions) GetResult(p Response) (u UCIAddResult, err error) {
 // does not have a GetResult func because this command only returns the exit code
 // implements Signature interface
 type UCIApplyOptions struct {
-	Rollback uci.StringBool `json:"rollback,omitempty"`
-	Timeout  int            `json:"timeout,omitempty"`
+	Rollback uci.Bool `json:"rollback,omitempty"`
+	Timeout  int      `json:"timeout,omitempty"`
 }
 
 func (UCIApplyOptions) isOptsType() {}
@@ -235,7 +235,7 @@ func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 	} else if len(p) > 1 {
 		switch obj := p[1].(type) {
 		case valueResult:
-			u.Option = map[string]uci.DynamicList{opts.Option: obj.Value}
+			u.Option = map[string]uci.List{opts.Option: obj.Value}
 		case valuesResult:
 			for _, section := range obj.Values {
 				switch s := section.(type) {
@@ -299,9 +299,9 @@ func (UCIRevertOptions) isOptsType() {}
 // does not have a GetResult func because this command only returns the exit code
 // implements Signature interface
 type UCISetOptions struct {
-	Config  string                      `json:"config,omitempty"`
-	Section string                      `json:"section,omitempty"`
-	Values  uci.UCIConfigSectionOptions `json:"values,omitempty"`
+	Config  string                   `json:"config,omitempty"`
+	Section string                   `json:"section,omitempty"`
+	Values  uci.ConfigSectionOptions `json:"values,omitempty"`
 }
 
 func (UCISetOptions) isOptsType() {}
@@ -339,10 +339,10 @@ type UCIConfigsResult struct {
 // result of a `uci get` command
 type UCIGetResult struct {
 	// if any combination of Config, Section, and Type are specified, return a set of
-	// UCIConfigSection(s)
-	SectionArray []uci.UCIConfigSection `json:"sectionArray,omitempty"`
+	// ConfigSection(s)
+	SectionArray []uci.ConfigSection `json:"sectionArray,omitempty"`
 	// if Option is set in UCIGetOptions, return a single option's value
-	Option map[string]uci.DynamicList `json:"option,omitempty"`
+	Option map[string]uci.List `json:"option,omitempty"`
 }
 
 /*
@@ -459,7 +459,7 @@ func (configsResult) isResultObject() {}
 // implements ResultObject interface
 // used for handling the raw RPC response
 type valueResult struct {
-	Value uci.DynamicList `json:"value"`
+	Value uci.List `json:"value"`
 }
 
 func (valueResult) isResultObject() {}
@@ -503,7 +503,7 @@ func (valueResult) isResultObject() {}
 // out which one it is for you. if it is a single response like in the second example,
 // it will unmarshal it into the form of the first one but with only that object.
 type valuesResult struct {
-	Values map[string]uci.UCIConfigSection `json:"values"`
+	Values map[string]uci.ConfigSection `json:"values"`
 }
 
 func (valuesResult) isResultObject() {}
@@ -546,11 +546,11 @@ func (v *valuesResult) UnmarshalJSON(data []byte) (err error) {
 		if err != nil {
 			return err
 		}
-		v.Values = map[string]uci.UCIConfigSection{section.GetName(): section}
+		v.Values = map[string]uci.ConfigSection{section.GetName(): section}
 		return nil
 	} else {
 		// handle named entries in map
-		v.Values = make(map[string]uci.UCIConfigSection)
+		v.Values = make(map[string]uci.ConfigSection)
 		for name, section := range result {
 			section, err := unmarshalRawSection(section)
 			if err != nil {
@@ -563,13 +563,13 @@ func (v *valuesResult) UnmarshalJSON(data []byte) (err error) {
 	return nil
 }
 
-func unmarshalRawResult[S uci.UCIConfigSection](data []byte) (uci.UCIConfigSection, error) {
+func unmarshalRawResult[S uci.ConfigSection](data []byte) (uci.ConfigSection, error) {
 	var s S
 	err := json.Unmarshal(data, &s)
 	return s, err
 }
 
-func unmarshalRawSection(data []byte) (section uci.UCIConfigSection, err error) {
+func unmarshalRawSection(data []byte) (section uci.ConfigSection, err error) {
 	var probe struct {
 		Type string `json:".type"`
 	}
@@ -633,7 +633,7 @@ func unmarshalRawSection(data []byte) (section uci.UCIConfigSection, err error) 
 	return section, err
 }
 
-// checks if the value of `values` is a single uci.UCIConfigSection or not
+// checks if the value of `values` is a single uci.ConfigSection or not
 func isSingleValues(m map[string]json.RawMessage) bool {
 	_, ok := m[".anonymous"]
 	return ok

@@ -124,7 +124,7 @@ func (o *ApplyOptions) BindFlags(c *cobra.Command) {
 
 func (o *ApplyOptions) Run(c *cobra.Command) error {
 	uciApplyOpts := client.UCIApplyOptions{
-		Rollback: uci.ToStringBool(o.Rollback),
+		Rollback: uci.Bool(o.Rollback),
 		Timeout:  o.Timeout,
 	}
 	ctx := c.Context()
