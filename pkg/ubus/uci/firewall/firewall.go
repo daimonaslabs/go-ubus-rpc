@@ -11,6 +11,8 @@ const (
 	// these are static values for the uci.StaticSectionOptions.Type field
 	Defaults   = "defaults"
 	Forwarding = "forwarding"
+	IPSet      = "ipset"
+	Include    = "include"
 	Redirect   = "redirect"
 	Rule       = "rule"
 	Zone       = "zone"

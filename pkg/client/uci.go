@@ -271,6 +271,10 @@ func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 					u.SectionArray = append(u.SectionArray, s)
 				case firewall.ForwardingSection:
 					u.SectionArray = append(u.SectionArray, s)
+				case firewall.IPSetSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case firewall.IncludeSection:
+					u.SectionArray = append(u.SectionArray, s)
 				case firewall.RedirectSection:
 					u.SectionArray = append(u.SectionArray, s)
 				case firewall.RuleSection:
@@ -621,6 +625,10 @@ func unmarshalRawSection(data []byte) (section uci.ConfigSection, err error) {
 		section, err = unmarshalRawResult[firewall.DefaultsSection](data)
 	case string(firewall.Forwarding):
 		section, err = unmarshalRawResult[firewall.ForwardingSection](data)
+	case string(firewall.IPSet):
+		section, err = unmarshalRawResult[firewall.IPSetSection](data)
+	case string(firewall.Include):
+		section, err = unmarshalRawResult[firewall.IncludeSection](data)
 	case string(firewall.Redirect):
 		section, err = unmarshalRawResult[firewall.RedirectSection](data)
 	case string(firewall.Rule):

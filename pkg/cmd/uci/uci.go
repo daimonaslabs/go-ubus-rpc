@@ -443,6 +443,10 @@ func (o *SetOptions) Run(c *cobra.Command) (err error) {
 			uciSetOpts = unmarshalCLIValues[firewall.DefaultsSectionOptions](o)
 		case string(firewall.Forwarding):
 			uciSetOpts = unmarshalCLIValues[firewall.ForwardingSectionOptions](o)
+		case string(firewall.IPSet):
+			uciSetOpts = unmarshalCLIValues[firewall.IPSetSectionOptions](o)
+		case string(firewall.Include):
+			uciSetOpts = unmarshalCLIValues[firewall.IncludeSectionOptions](o)
 		case string(firewall.Redirect):
 			uciSetOpts = unmarshalCLIValues[firewall.RedirectSectionOptions](o)
 		case string(firewall.Rule):
