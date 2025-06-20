@@ -10,6 +10,7 @@ import (
 
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/client"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/dhcp"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
 )
 
@@ -72,23 +73,25 @@ func (o *AddOptions) BindFlags(c *cobra.Command) {
 	c.MarkFlagRequired("type")
 }
 
-func (o *AddOptions) Run(c *cobra.Command) error {
-	uciAddOpts := client.UCIAddOptions{
-		Config: uci.ConfigName(o.Config),
-		Type:   uci.SectionType(o.Type),
+func (o *AddOptions) Run(c *cobra.Command) (err error) {
+	if err = checkConfig(o.Config); err == nil {
+		uciAddOpts := client.UCIAddOptions{
+			Config: o.Config,
+			Type:   o.Type,
+		}
+		ctx := c.Context()
+		rpc := client.GetFromContext(c.Context())
+		response, err := rpc.UCI().Add(ctx, uciAddOpts)
+		if err != nil {
+			return err
+		}
+		result, err := uciAddOpts.GetResult(response)
+		if err != nil {
+			return err
+		}
+		output, _ := json.MarshalIndent(result, "", "  ")
+		fmt.Println(string(output))
 	}
-	ctx := c.Context()
-	rpc := client.GetFromContext(c.Context())
-	response, err := rpc.UCI().Add(ctx, uciAddOpts)
-	if err != nil {
-		return err
-	}
-	result, err := uciAddOpts.GetResult(response)
-	if err != nil {
-		return err
-	}
-	output, err := json.MarshalIndent(result, "", "  ")
-	fmt.Println(string(output))
 	return err
 }
 
@@ -121,7 +124,7 @@ func (o *ApplyOptions) BindFlags(c *cobra.Command) {
 
 func (o *ApplyOptions) Run(c *cobra.Command) error {
 	uciApplyOpts := client.UCIApplyOptions{
-		Rollback: uci.ToStringBool(o.Rollback),
+		Rollback: uci.Bool(o.Rollback),
 		Timeout:  o.Timeout,
 	}
 	ctx := c.Context()
@@ -161,22 +164,24 @@ func (o *ChangesOptions) BindFlags(c *cobra.Command) {
 	c.Flags().StringVarP(&o.Config, "config", "c", "", "Which config to query.")
 }
 
-func (o *ChangesOptions) Run(c *cobra.Command) error {
-	uciChangesOpts := client.UCIChangesOptions{
-		Config: uci.ConfigName(o.Config),
+func (o *ChangesOptions) Run(c *cobra.Command) (err error) {
+	if err = checkConfig(o.Config); err == nil {
+		uciChangesOpts := client.UCIChangesOptions{
+			Config: o.Config,
+		}
+		ctx := c.Context()
+		rpc := client.GetFromContext(c.Context())
+		response, err := rpc.UCI().Changes(ctx, uciChangesOpts)
+		if err != nil {
+			return err
+		}
+		result, err := uciChangesOpts.GetResult(response)
+		if err != nil {
+			return err
+		}
+		output, _ := json.MarshalIndent(result, "", "  ")
+		fmt.Println(string(output))
 	}
-	ctx := c.Context()
-	rpc := client.GetFromContext(c.Context())
-	response, err := rpc.UCI().Changes(ctx, uciChangesOpts)
-	if err != nil {
-		return err
-	}
-	result, err := uciChangesOpts.GetResult(response)
-	if err != nil {
-		return err
-	}
-	output, err := json.MarshalIndent(result, "", "  ")
-	fmt.Println(string(output))
 	return err
 }
 
@@ -247,22 +252,24 @@ func (o *DeleteOptions) BindFlags(c *cobra.Command) {
 	c.MarkFlagRequired("config")
 }
 
-func (o *DeleteOptions) Run(c *cobra.Command) error {
-	uciDeleteOpts := client.UCIDeleteOptions{
-		Config:  uci.ConfigName(o.Config),
-		Section: o.Section,
-		Type:    o.Type,
-		Option:  o.Option,
-	}
-	ctx := c.Context()
-	rpc := client.GetFromContext(c.Context())
-	response, err := rpc.UCI().Delete(ctx, uciDeleteOpts)
-	if err != nil {
-		return err
-	}
+func (o *DeleteOptions) Run(c *cobra.Command) (err error) {
+	if err = checkConfig(o.Config); err == nil {
+		uciDeleteOpts := client.UCIDeleteOptions{
+			Config:  o.Config,
+			Section: o.Section,
+			Type:    o.Type,
+			Option:  o.Option,
+		}
+		ctx := c.Context()
+		rpc := client.GetFromContext(c.Context())
+		response, err := rpc.UCI().Delete(ctx, uciDeleteOpts)
+		if err != nil {
+			return err
+		}
 
-	output, err := json.MarshalIndent(response, "", "  ")
-	fmt.Println(string(output))
+		output, _ := json.MarshalIndent(response, "", "  ")
+		fmt.Println(string(output))
+	}
 	return err
 }
 
@@ -298,25 +305,27 @@ func (o *GetOptions) BindFlags(c *cobra.Command) {
 	c.MarkFlagRequired("config")
 }
 
-func (o *GetOptions) Run(c *cobra.Command) error {
-	uciGetOpts := client.UCIGetOptions{
-		Config:  uci.ConfigName(o.Config),
-		Section: o.Section,
-		Type:    o.Type,
-		Option:  o.Option,
+func (o *GetOptions) Run(c *cobra.Command) (err error) {
+	if err = checkConfig(o.Config); err == nil {
+		uciGetOpts := client.UCIGetOptions{
+			Config:  o.Config,
+			Section: o.Section,
+			Type:    o.Type,
+			Option:  o.Option,
+		}
+		ctx := c.Context()
+		rpc := client.GetFromContext(c.Context())
+		response, err := rpc.UCI().Get(ctx, uciGetOpts)
+		if err != nil {
+			return err
+		}
+		result, err := uciGetOpts.GetResult(response)
+		if err != nil {
+			return err
+		}
+		output, _ := json.MarshalIndent(result, "", "  ")
+		fmt.Println(string(output))
 	}
-	ctx := c.Context()
-	rpc := client.GetFromContext(c.Context())
-	response, err := rpc.UCI().Get(ctx, uciGetOpts)
-	if err != nil {
-		return err
-	}
-	result, err := uciGetOpts.GetResult(response)
-	if err != nil {
-		return err
-	}
-	output, err := json.MarshalIndent(result, "", "  ")
-	fmt.Println(string(output))
 	return err
 }
 
@@ -346,18 +355,20 @@ func (o *RevertOptions) BindFlags(c *cobra.Command) {
 	c.MarkFlagRequired("config")
 }
 
-func (o *RevertOptions) Run(c *cobra.Command) error {
-	uciRevertOpts := client.UCIRevertOptions{
-		Config: uci.ConfigName(o.Config),
+func (o *RevertOptions) Run(c *cobra.Command) (err error) {
+	if err = checkConfig(o.Config); err == nil {
+		uciRevertOpts := client.UCIRevertOptions{
+			Config: o.Config,
+		}
+		ctx := c.Context()
+		rpc := client.GetFromContext(c.Context())
+		response, err := rpc.UCI().Revert(ctx, uciRevertOpts)
+		if err != nil {
+			return err
+		}
+		output, err := json.MarshalIndent(response, "", "  ")
+		fmt.Println(string(output))
 	}
-	ctx := c.Context()
-	rpc := client.GetFromContext(c.Context())
-	response, err := rpc.UCI().Revert(ctx, uciRevertOpts)
-	if err != nil {
-		return err
-	}
-	output, err := json.MarshalIndent(response, "", "  ")
-	fmt.Println(string(output))
 	return err
 }
 
@@ -396,43 +407,63 @@ func (o *SetOptions) BindFlags(c *cobra.Command) {
 	c.MarkFlagRequired("values")
 }
 
-func (o *SetOptions) Run(c *cobra.Command) error {
-	uciSetOpts := client.UCISetOptions{}
-	switch o.Type {
-	case string(firewall.Defaults):
-		uciSetOpts = unmarshalCLIValues[firewall.DefaultsSectionOptions](o)
-	case string(firewall.Forwarding):
-		uciSetOpts = unmarshalCLIValues[firewall.ForwardingSectionOptions](o)
-	case string(firewall.Redirect):
-		uciSetOpts = unmarshalCLIValues[firewall.RedirectSectionOptions](o)
-	case string(firewall.Rule):
-		uciSetOpts = unmarshalCLIValues[firewall.RuleSectionOptions](o)
-	case string(firewall.Zone):
-		uciSetOpts = unmarshalCLIValues[firewall.ZoneSectionOptions](o)
-	}
+func (o *SetOptions) Run(c *cobra.Command) (err error) {
+	if err = checkConfig(o.Config); err == nil {
+		uciSetOpts := client.UCISetOptions{}
+		switch o.Type {
+		case string(dhcp.Boot):
+			uciSetOpts = unmarshalCLIValues[dhcp.BootSection](o)
+		case string(dhcp.CircuitID):
+			uciSetOpts = unmarshalCLIValues[dhcp.CircuitIDSection](o)
+		case string(dhcp.DHCP):
+			uciSetOpts = unmarshalCLIValues[dhcp.DHCPSection](o)
+		case string(dhcp.Dnsmasq):
+			uciSetOpts = unmarshalCLIValues[dhcp.DnsmasqSection](o)
+		case string(dhcp.Host):
+			uciSetOpts = unmarshalCLIValues[dhcp.HostSection](o)
+		case string(dhcp.HostRecord):
+			uciSetOpts = unmarshalCLIValues[dhcp.HostRecordSection](o)
+		case string(dhcp.MAC):
+			uciSetOpts = unmarshalCLIValues[dhcp.MACSection](o)
+		case string(dhcp.Odhcpd):
+			uciSetOpts = unmarshalCLIValues[dhcp.OdhcpdSection](o)
+		case string(dhcp.Relay):
+			uciSetOpts = unmarshalCLIValues[dhcp.RelaySection](o)
+		case string(dhcp.RemoteID):
+			uciSetOpts = unmarshalCLIValues[dhcp.RemoteIDSection](o)
+		case string(dhcp.SubscrID):
+			uciSetOpts = unmarshalCLIValues[dhcp.SubscrIDSection](o)
+		case string(dhcp.Tag):
+			uciSetOpts = unmarshalCLIValues[dhcp.TagSection](o)
+		case string(dhcp.UserClass):
+			uciSetOpts = unmarshalCLIValues[dhcp.UserClassSection](o)
+		case string(dhcp.VendorClass):
+			uciSetOpts = unmarshalCLIValues[dhcp.VendorClassSection](o)
+		case string(firewall.Defaults):
+			uciSetOpts = unmarshalCLIValues[firewall.DefaultsSectionOptions](o)
+		case string(firewall.Forwarding):
+			uciSetOpts = unmarshalCLIValues[firewall.ForwardingSectionOptions](o)
+		case string(firewall.IPSet):
+			uciSetOpts = unmarshalCLIValues[firewall.IPSetSectionOptions](o)
+		case string(firewall.Include):
+			uciSetOpts = unmarshalCLIValues[firewall.IncludeSectionOptions](o)
+		case string(firewall.Redirect):
+			uciSetOpts = unmarshalCLIValues[firewall.RedirectSectionOptions](o)
+		case string(firewall.Rule):
+			uciSetOpts = unmarshalCLIValues[firewall.RuleSectionOptions](o)
+		case string(firewall.Zone):
+			uciSetOpts = unmarshalCLIValues[firewall.ZoneSectionOptions](o)
+		}
 
-	ctx := c.Context()
-	rpc := client.GetFromContext(c.Context())
-	response, err := rpc.UCI().Set(ctx, uciSetOpts)
-	if err != nil {
-		return err
-	}
+		ctx := c.Context()
+		rpc := client.GetFromContext(c.Context())
+		response, err := rpc.UCI().Set(ctx, uciSetOpts)
+		if err != nil {
+			return err
+		}
 
-	output, err := json.MarshalIndent(response, "", "  ")
-	fmt.Println(string(output))
+		output, _ := json.MarshalIndent(response, "", "  ")
+		fmt.Println(string(output))
+	}
 	return err
-}
-
-func unmarshalCLIValues[S uci.UCIConfigSectionOptions](o *SetOptions) (u client.UCISetOptions) {
-	var s S
-	err := json.Unmarshal([]byte(o.Values), &s)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	u = client.UCISetOptions{
-		Config:  uci.ConfigName(o.Config),
-		Section: o.Section,
-		Values:  s,
-	}
-	return u
 }

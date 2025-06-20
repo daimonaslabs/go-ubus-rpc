@@ -124,12 +124,12 @@ func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 
 // result of a `uci get` command
 type UCIGetResult struct {
-	SectionArray []uci.UCIConfigSection `json:"sectionArray,omitempty"`
+	SectionArray []uci.ConfigSection `json:"sectionArray,omitempty"`
 	Option       map[string]string      `json:"option,omitempty"`
 }
 
 type valuesResult struct {
-	Values map[string]uci.UCIConfigSection `json:"values"`
+	Values map[string]uci.ConfigSection `json:"values"`
 }
 
 func (valuesResult) isResultObject() {}

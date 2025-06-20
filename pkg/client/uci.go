@@ -7,6 +7,7 @@ import (
 	"reflect"
 
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/dhcp"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
 )
 
@@ -98,20 +99,22 @@ func (c *uciRPC) Set(ctx context.Context, opts UCISetOptions) (Response, error) 
 
 // implements Signature interface
 type UCIAddOptions struct {
-	Config uci.ConfigName  `json:"config,omitempty"`
-	Type   uci.SectionType `json:"type,omitempty"`
+	Config string `json:"config,omitempty"`
+	Type   string `json:"type,omitempty"`
 }
 
 func (UCIAddOptions) isOptsType() {}
 
 func (opts UCIAddOptions) GetResult(p Response) (u UCIAddResult, err error) {
-	if len(p) > 1 {
+	if len(p) == 0 {
+		return u, errors.New("empty response")
+	} else if len(p) > 1 {
 		data, _ := json.Marshal(p[1])
 		switch p[1].(type) {
 		case addResult:
 			err = json.Unmarshal(data, &u)
 		default:
-			return u, errors.New("not an AddResult")
+			return u, errors.New("not a UCIAddResult")
 		}
 	} else { // error
 		return u, errors.New(p[0].(ExitCode).Error())
@@ -122,22 +125,24 @@ func (opts UCIAddOptions) GetResult(p Response) (u UCIAddResult, err error) {
 // does not have a GetResult func because this command only returns the exit code
 // implements Signature interface
 type UCIApplyOptions struct {
-	Rollback uci.StringBool `json:"rollback,omitempty"`
-	Timeout  int            `json:"timeout,omitempty"`
+	Rollback uci.Bool `json:"rollback,omitempty"`
+	Timeout  int      `json:"timeout,omitempty"`
 }
 
 func (UCIApplyOptions) isOptsType() {}
 
 // implements Signature interface
 type UCIChangesOptions struct {
-	Config uci.ConfigName `json:"config,omitempty"`
+	Config string `json:"config,omitempty"`
 }
 
 func (UCIChangesOptions) isOptsType() {}
 
 func (opts UCIChangesOptions) GetResult(p Response) (u UCIChangesResult, err error) {
-	u.Changes = make(map[uci.ConfigName][]Change)
-	if len(p) > 1 {
+	u.Changes = make(map[string][]Change)
+	if len(p) == 0 {
+		return u, errors.New("empty response")
+	} else if len(p) > 1 {
 		//data, _ := json.Marshal(p[1])
 		switch c := p[1].(type) {
 		case changesResult:
@@ -147,11 +152,11 @@ func (opts UCIChangesOptions) GetResult(p Response) (u UCIChangesResult, err err
 
 			} else {
 				for config, changes := range c.Many {
-					u.Changes[uci.ConfigName(config)] = exportRawChanges(changes)
+					u.Changes[config] = exportRawChanges(changes)
 				}
 			}
 		default:
-			return u, errors.New("not a ChangesResult")
+			return u, errors.New("not a UCIChangesResult")
 		}
 	} else { // error
 		return u, errors.New(p[0].(ExitCode).Error())
@@ -165,7 +170,7 @@ func exportRawChanges(changes []change) (Changes []Change) {
 		C.Procedure = c[0]
 		C.Section = c[1]
 		if len(c) == 3 {
-			C.Type = uci.SectionType(c[2])
+			C.Type = c[2]
 		} else if len(c) == 4 {
 			C.Option = c[2]
 			C.Value = c[3]
@@ -193,7 +198,7 @@ func (opts UCIConfigsOptions) GetResult(p Response) (u UCIConfigsResult, err err
 		case configsResult:
 			err = json.Unmarshal(data, &u)
 		default:
-			return u, errors.New("not a ConfigsResult")
+			return u, errors.New("not a UCIConfigsResult")
 		}
 	} else { // error
 		return u, errors.New(p[0].(ExitCode).Error())
@@ -204,35 +209,71 @@ func (opts UCIConfigsOptions) GetResult(p Response) (u UCIConfigsResult, err err
 // does not have a GetResult func because this command only returns the exit code
 // implements Signature interface
 type UCIDeleteOptions struct {
-	Config  uci.ConfigName `json:"config,omitempty"`
-	Section string         `json:"section,omitempty"`
-	Type    string         `json:"type,omitempty"`
-	Option  string         `json:"option,omitempty"`
+	Config  string `json:"config,omitempty"`
+	Section string `json:"section,omitempty"`
+	Type    string `json:"type,omitempty"`
+	Option  string `json:"option,omitempty"`
 }
 
 func (UCIDeleteOptions) isOptsType() {}
 
 // implements Signature interface
 type UCIGetOptions struct {
-	Config  uci.ConfigName `json:"config,omitempty"`
-	Section string         `json:"section,omitempty"`
-	Type    string         `json:"type,omitempty"`
-	Option  string         `json:"option,omitempty"`
+	Config  string `json:"config,omitempty"`
+	Section string `json:"section,omitempty"`
+	Type    string `json:"type,omitempty"`
+	Option  string `json:"option,omitempty"`
 }
 
 func (UCIGetOptions) isOptsType() {}
 
 func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
-	if len(p) > 1 {
+	if len(p) == 0 {
+		return u, errors.New("empty response")
+	} else if len(p) == 1 {
+		return u, err
+	} else if len(p) > 1 {
 		switch obj := p[1].(type) {
 		case valueResult:
-			u.Option = map[string]uci.DynamicList{opts.Option: obj.Value}
+			u.Option = map[string]uci.List{opts.Option: obj.Value}
 		case valuesResult:
 			for _, section := range obj.Values {
 				switch s := section.(type) {
+				case dhcp.BootSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.CircuitIDSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.DHCPSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.DnsmasqSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.HostSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.HostRecordSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.MACSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.OdhcpdSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.RelaySection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.RemoteIDSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.SubscrIDSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.TagSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.UserClassSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case dhcp.VendorClassSection:
+					u.SectionArray = append(u.SectionArray, s)
 				case firewall.DefaultsSection:
 					u.SectionArray = append(u.SectionArray, s)
 				case firewall.ForwardingSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case firewall.IPSetSection:
+					u.SectionArray = append(u.SectionArray, s)
+				case firewall.IncludeSection:
 					u.SectionArray = append(u.SectionArray, s)
 				case firewall.RedirectSection:
 					u.SectionArray = append(u.SectionArray, s)
@@ -243,7 +284,7 @@ func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 				}
 			}
 		default:
-			return u, errors.New("not a GetResult")
+			return u, errors.New("not a UCIGetResult")
 		}
 	} else { // error
 		return u, errors.New(p[0].(ExitCode).Error())
@@ -254,7 +295,7 @@ func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 // does not have a GetResult func because this command only returns the exit code
 // implements Signature interface
 type UCIRevertOptions struct {
-	Config uci.ConfigName `json:"config,omitempty"`
+	Config string `json:"config,omitempty"`
 }
 
 func (UCIRevertOptions) isOptsType() {}
@@ -262,9 +303,9 @@ func (UCIRevertOptions) isOptsType() {}
 // does not have a GetResult func because this command only returns the exit code
 // implements Signature interface
 type UCISetOptions struct {
-	Config  uci.ConfigName              `json:"config,omitempty"`
-	Section string                      `json:"section,omitempty"`
-	Values  uci.UCIConfigSectionOptions `json:"values,omitempty"`
+	Config  string                   `json:"config,omitempty"`
+	Section string                   `json:"section,omitempty"`
+	Values  uci.ConfigSectionOptions `json:"values,omitempty"`
 }
 
 func (UCISetOptions) isOptsType() {}
@@ -283,29 +324,29 @@ type UCIAddResult struct {
 }
 
 type Change struct {
-	Procedure string          `json:"procedure"`
-	Section   string          `json:"section"`
-	Type      uci.SectionType `json:"type,omitempty"`
-	Option    string          `json:"option,omitempty"`
-	Value     string          `json:"value,omitempty"`
+	Procedure string `json:"procedure"`
+	Section   string `json:"section"`
+	Type      string `json:"type,omitempty"`
+	Option    string `json:"option,omitempty"`
+	Value     string `json:"value,omitempty"`
 }
 
 type UCIChangesResult struct {
-	Changes map[uci.ConfigName][]Change `json:"changes"`
+	Changes map[string][]Change `json:"changes"`
 }
 
 // result of a `uci configs` command
 type UCIConfigsResult struct {
-	Configs []uci.ConfigName `json:"configs,omitempty"`
+	Configs []string `json:"configs,omitempty"`
 }
 
 // result of a `uci get` command
 type UCIGetResult struct {
 	// if any combination of Config, Section, and Type are specified, return a set of
-	// UCIConfigSection(s)
-	SectionArray []uci.UCIConfigSection `json:"sectionArray,omitempty"`
+	// ConfigSection(s)
+	SectionArray []uci.ConfigSection `json:"sectionArray,omitempty"`
 	// if Option is set in UCIGetOptions, return a single option's value
-	Option map[string]uci.DynamicList `json:"option,omitempty"`
+	Option map[string]uci.List `json:"option,omitempty"`
 }
 
 /*
@@ -414,7 +455,7 @@ func isSingleChanges(m map[string]json.RawMessage) bool {
 // implements ResultObject interface
 // used for handling the raw RPC response
 type configsResult struct {
-	Configs []uci.ConfigName `json:"configs"`
+	Configs []string `json:"configs"`
 }
 
 func (configsResult) isResultObject() {}
@@ -422,7 +463,7 @@ func (configsResult) isResultObject() {}
 // implements ResultObject interface
 // used for handling the raw RPC response
 type valueResult struct {
-	Value uci.DynamicList `json:"value"`
+	Value uci.List `json:"value"`
 }
 
 func (valueResult) isResultObject() {}
@@ -464,9 +505,9 @@ func (valueResult) isResultObject() {}
 // basically, one is a single object returned while the other is a set of them.
 // you can call json.Marshal and Unmarshal on them like normal and it will figure
 // out which one it is for you. if it is a single response like in the second example,
-// it will marshal it into the form of the first one but with only that object.
+// it will unmarshal it into the form of the first one but with only that object.
 type valuesResult struct {
-	Values map[string]uci.UCIConfigSection `json:"values"`
+	Values map[string]uci.ConfigSection `json:"values"`
 }
 
 func (valuesResult) isResultObject() {}
@@ -509,11 +550,11 @@ func (v *valuesResult) UnmarshalJSON(data []byte) (err error) {
 		if err != nil {
 			return err
 		}
-		v.Values = map[string]uci.UCIConfigSection{section.GetName(): section}
+		v.Values = map[string]uci.ConfigSection{section.GetName(): section}
 		return nil
 	} else {
 		// handle named entries in map
-		v.Values = make(map[string]uci.UCIConfigSection)
+		v.Values = make(map[string]uci.ConfigSection)
 		for name, section := range result {
 			section, err := unmarshalRawSection(section)
 			if err != nil {
@@ -526,13 +567,13 @@ func (v *valuesResult) UnmarshalJSON(data []byte) (err error) {
 	return nil
 }
 
-func unmarshalRawResult[S uci.UCIConfigSection](data []byte) (uci.UCIConfigSection, error) {
+func unmarshalRawResult[S uci.ConfigSection](data []byte) (uci.ConfigSection, error) {
 	var s S
 	err := json.Unmarshal(data, &s)
 	return s, err
 }
 
-func unmarshalRawSection(data []byte) (section uci.UCIConfigSection, err error) {
+func unmarshalRawSection(data []byte) (section uci.ConfigSection, err error) {
 	var probe struct {
 		Type string `json:".type"`
 	}
@@ -552,10 +593,42 @@ func unmarshalRawSection(data []byte) (section uci.UCIConfigSection, err error) 
 	}
 
 	switch probe.Type {
+	case string(dhcp.Boot):
+		section, err = unmarshalRawResult[dhcp.BootSection](data)
+	case string(dhcp.CircuitID):
+		section, err = unmarshalRawResult[dhcp.CircuitIDSection](data)
+	case string(dhcp.DHCP):
+		section, err = unmarshalRawResult[dhcp.DHCPSection](data)
+	case string(dhcp.Dnsmasq):
+		section, err = unmarshalRawResult[dhcp.DnsmasqSection](data)
+	case string(dhcp.Host):
+		section, err = unmarshalRawResult[dhcp.HostSection](data)
+	case string(dhcp.HostRecord):
+		section, err = unmarshalRawResult[dhcp.HostRecordSection](data)
+	case string(dhcp.MAC):
+		section, err = unmarshalRawResult[dhcp.MACSection](data)
+	case string(dhcp.Odhcpd):
+		section, err = unmarshalRawResult[dhcp.OdhcpdSection](data)
+	case string(dhcp.Relay):
+		section, err = unmarshalRawResult[dhcp.RelaySection](data)
+	case string(dhcp.RemoteID):
+		section, err = unmarshalRawResult[dhcp.RemoteIDSection](data)
+	case string(dhcp.SubscrID):
+		section, err = unmarshalRawResult[dhcp.SubscrIDSection](data)
+	case string(dhcp.Tag):
+		section, err = unmarshalRawResult[dhcp.TagSection](data)
+	case string(dhcp.UserClass):
+		section, err = unmarshalRawResult[dhcp.UserClassSection](data)
+	case string(dhcp.VendorClass):
+		section, err = unmarshalRawResult[dhcp.VendorClassSection](data)
 	case string(firewall.Defaults):
 		section, err = unmarshalRawResult[firewall.DefaultsSection](data)
 	case string(firewall.Forwarding):
 		section, err = unmarshalRawResult[firewall.ForwardingSection](data)
+	case string(firewall.IPSet):
+		section, err = unmarshalRawResult[firewall.IPSetSection](data)
+	case string(firewall.Include):
+		section, err = unmarshalRawResult[firewall.IncludeSection](data)
 	case string(firewall.Redirect):
 		section, err = unmarshalRawResult[firewall.RedirectSection](data)
 	case string(firewall.Rule):
@@ -568,7 +641,7 @@ func unmarshalRawSection(data []byte) (section uci.UCIConfigSection, err error) 
 	return section, err
 }
 
-// checks if the value of `values` is a single uci.UCIConfigSection or not
+// checks if the value of `values` is a single uci.ConfigSection or not
 func isSingleValues(m map[string]json.RawMessage) bool {
 	_, ok := m[".anonymous"]
 	return ok
