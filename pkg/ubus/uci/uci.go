@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -66,8 +67,6 @@ type ConfigSectionOptions interface {
 	IsConfigSectionOptions()
 }
 
-// TODO change to Bool, make it a normal bool but un/marshals to/from strings
-// also add a UCIInt, same thing but for ints
 type Bool bool
 
 // marshals the bool to a string value of "1" or "0"
@@ -84,7 +83,6 @@ func (b *Bool) UnmarshalJSON(data []byte) error {
 	val := strings.ReplaceAll(string(data), "\"", "")
 	if val == "1" {
 		*b = Bool(true)
-		fmt.Println(*b)
 		return nil
 	} else if val == "0" {
 		*b = Bool(false)
@@ -94,9 +92,32 @@ func (b *Bool) UnmarshalJSON(data []byte) error {
 	}
 }
 
+type Int int
+
+// marshals int to a string
+func (i Int) MarshalJSON() ([]byte, error) {
+	str := strconv.Itoa(int(i))
+
+	return json.Marshal(str)
+}
+
+// unmarshals a string back to an int
+func (i *Int) UnmarshalJSON(data []byte) (err error) {
+	var str string
+	var val int
+
+	if err = json.Unmarshal(data, &str); err == nil {
+		if val, err = strconv.Atoi(str); err == nil {
+			*i = Int(val)
+		}
+	}
+
+	return err
+}
+
 type List []string
 
-// MarshalJSON outputs as a string if there's one item, or a list if multiple
+// marshals as a string if there's one item or a list if multiple
 func (d List) MarshalJSON() ([]byte, error) {
 	if len(d) == 1 {
 		return json.Marshal(d[0])
@@ -104,7 +125,7 @@ func (d List) MarshalJSON() ([]byte, error) {
 	return json.Marshal([]string(d))
 }
 
-// UnmarshalJSON allows List to accept either a single string or a list of strings.
+// accepts either a single string or a list of strings
 func (d *List) UnmarshalJSON(data []byte) error {
 	// try unmarshaling as a slice of strings first
 	var list []string

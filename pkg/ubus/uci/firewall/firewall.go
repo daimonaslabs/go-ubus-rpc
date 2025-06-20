@@ -361,9 +361,9 @@ type RuleSectionOptions struct {
 	DestIP string `json:"dest_ip,omitempty"`
 	// Match incoming traffic directed at the given destination port or port range, if relevant proto is specified.
 	// Multiple ports can be specified like '80 443 465' 1.
-	DestPort  string `json:"dest_port,omitempty"`
-	Device    string `json:"device,omitempty"`
-	Direction string `json:"direction,omitempty"`
+	DestPort  uci.Int `json:"dest_port,omitempty"`
+	Device    string  `json:"device,omitempty"`
+	Direction string  `json:"direction,omitempty"`
 	// Enable or disable rule.
 	Enabled uci.Bool `json:"enabled,omitempty"`
 	// Specifies the address family (ipv4, ipv6 or any) for which the rules are generated. If unspecified, matches

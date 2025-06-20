@@ -129,7 +129,7 @@ type DHCPSectionOptions struct {
 	// Specifies the lease time of addresses handed out to clients, for example 12h or 30m.
 	LeaseTime string `json:"leasetime,omitempty"`
 	// Specifies the size of the address pool (e.g. with start=100, limit=150, maximum address will be .249).
-	Limit string `json:"limit,omitempty"`
+	Limit uci.Int `json:"limit,omitempty"`
 	// Specifies whether DHCPv6, RA and NDP in relay mode is a master interface or not.
 	Master uci.Bool `json:"master,omitempty"`
 	// The dhcp functionality defined in the dhcp section is limited to the interface indicated here through
@@ -184,7 +184,7 @@ type DHCPSectionOptions struct {
 	RAUseLeaseTime uci.Bool `json:"ra_useleasetime,omitempty"`
 	// Specifies the offset from the network address of the underlying interface to calculate the minimum address that may be
 	// leased to clients. It may be greater than 255 to span subnets.
-	Start string `json:"start,omitempty"`
+	Start uci.Int `json:"start,omitempty"`
 	// List of tags that dnsmasq needs to match to use with --dhcp-range.
 	Tag []string `json:"tag,omitempty"`
 }
@@ -251,7 +251,7 @@ type DnsmasqSectionOptions struct {
 	// the loopback address is used, and all queries go through dnsmasq.
 	CacheLocal uci.Bool `json:"cachelocal,omitempty"`
 	// Size of dnsmasq query cache.
-	CacheSize string `json:"cachesize,omitempty"`
+	CacheSize uci.Int `json:"cachesize,omitempty"`
 	// Directory with additional configuration files.
 	ConfDir string `json:"confdir,omitempty"`
 	// Enable DBus messaging for dnsmasq.
@@ -274,7 +274,7 @@ type DnsmasqSectionOptions struct {
 	// nameservers. If the name is not known from /etc/hosts or DHCP then a “not found” answer is returned.
 	DomainNeeded uci.Bool `json:"domainneeded,omitempty"`
 	// Specify the largest EDNS.0 UDP packet which is supported by the DNS forwarder.
-	EDNSPacketMax string `json:"ednspacket_max,omitempty"`
+	EDNSPacketMax uci.Int `json:"ednspacket_max,omitempty"`
 	// Enable the builtin TFTP server.
 	EnableTFTP uci.Bool `json:"enable_tftp,omitempty"`
 	// Add the local domain part to names found in /etc/hosts.
@@ -486,7 +486,7 @@ type OdhcpdSectionOptions struct {
 	Legacy uci.Bool `json:"legacy,omitempty"`
 	// Syslog level priority (0-7):
 	// 0=emer, 1=alert, 2=crit, 3=err, 4=warn, 5=notice, 6=info, 7=debug
-	LogLevel string `json:"loglevel,omitempty"` // TODO add a uci.UCIInt type and use here
+	LogLevel uci.Int `json:"loglevel,omitempty"` // TODO add a uci.UCIInt type and use here
 }
 
 func (OdhcpdSectionOptions) IsConfigSectionOptions() {}
