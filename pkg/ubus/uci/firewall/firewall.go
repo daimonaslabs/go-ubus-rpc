@@ -39,7 +39,7 @@ var (
 )
 
 func init() {
-	Sections = []string{Defaults, Forwarding, Redirect, Rule, Zone}
+	Sections = []string{Defaults, Forwarding, IPSet, Include, Redirect, Rule, Zone}
 }
 
 // Used by RuleSection.ICMPType

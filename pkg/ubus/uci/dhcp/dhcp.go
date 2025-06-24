@@ -46,7 +46,7 @@ var (
 )
 
 func init() {
-	Sections = []string{Boot, DHCP, Dnsmasq, Host, HostRecord, Relay}
+	Sections = []string{Boot, CircuitID, DHCP, Dnsmasq, Host, HostRecord, MAC, Odhcpd, Relay, RemoteID, SubscrID, Tag, UserClass, VendorClass}
 }
 
 type BootSection struct {
