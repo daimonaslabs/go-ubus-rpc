@@ -30,8 +30,8 @@ import (
 )
 
 var (
-	username = flag.String("username", "root", "Username to log into OpenWRT instance")
-	password = flag.String("password", "D@!monas", "Password to log into OpenWRT instance")
+	username = flag.String("username", "root", "Username to log into OpenWrt instance")
+	password = flag.String("password", "D@!monas", "Password to log into OpenWrt instance")
 	url      = flag.String("url", "http://10.0.0.1/ubus", "URL of ubus endpoint")
 )
 

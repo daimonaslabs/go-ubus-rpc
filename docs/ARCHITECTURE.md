@@ -2,7 +2,7 @@
 
 ## Overview
 `UbusRPC` is the main client and calling object. Get one with `NewUbusRPC` and use it to make calls to
-the remote OpenWRT instance. Each ubus command ('path' in ubus docs) is an interface which contains
+the remote OpenWrt instance. Each ubus command ('path' in ubus docs) is an interface which contains
 all the subcommands ('procedure' in ubus docs) associated with that top level command. The parameters
 for each command ('signature' in ubus docs) is also an interface because every command has different
 parameters. Because of this, typed result objects are also retrieved from the response via methods tied to

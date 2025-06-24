@@ -26,8 +26,8 @@ import (
 func NewCommand() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "gur",
-		Short: "Make RPCs to OpenWRT's ubus.",
-		Long:  "Make RPCs to OpenWRT's ubus.",
+		Short: "Make RPCs to OpenWrt's ubus.",
+		Long:  "Make RPCs to OpenWrt's ubus.",
 	}
 
 	c.AddCommand(

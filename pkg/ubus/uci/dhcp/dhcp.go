@@ -223,7 +223,7 @@ type DnsmasqSectionOptions struct {
 	// Add the local domain as search directive in resolv.conf.
 	AddLocalDomain uci.Bool `json:"add_local_domain,omitempty"`
 	// Add A, AAAA, and PTR records for this router only on DHCP served LAN.
-	// Enhanced function available since OpenWRT 18.06 with option AddLocalFQDN
+	// Enhanced function available since OpenWrt 18.06 with option AddLocalFQDN
 	AddLocalHostname uci.Bool `json:"add_local_hostname,omitempty"`
 	// Add A, AAAA, and PTR records for this router only on DHCP served LAN.
 	// 0: Disable.
@@ -231,7 +231,7 @@ type DnsmasqSectionOptions struct {
 	// 2: Hostname on All Addresses.
 	// 3: FDQN on All Addresses.
 	// 4: iface.host.domain on All Addresses.
-	// Available since OpenWRT 18.06
+	// Available since OpenWrt 18.06
 	AddLocalFQDN int `json:"add_local_fqdn,omitempty"`
 	// Add the MAC address of the requester to DNS queries which are forwarded upstream; this may be used to do
 	// DNS filtering by the upstream server.
@@ -243,7 +243,7 @@ type DnsmasqSectionOptions struct {
 	// Labels WAN interfaces like add_local_fqdn instead of your ISP assigned default which may be
 	// obscure. WAN is inferred from config dhcp sections with option ignore 1 set, so they do not
 	// need to be named WAN.
-	// Available since OpenWRT 18.06
+	// Available since OpenWrt 18.06
 	AddWANFQDN int `json:"add_wan_fqdn,omitempty"`
 	// Additional host files to read for serving DNS responses. Syntax in each file is the same as /etc/hosts.
 	AddnHosts []string `json:"addnhosts,omitempty"`
