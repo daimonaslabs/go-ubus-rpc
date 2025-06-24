@@ -124,7 +124,7 @@ func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 
 // result of a `uci get` command
 type UCIGetResult struct {
-	SectionArray []uci.ConfigSection `json:"sectionArray,omitempty"`
+	Sections []uci.ConfigSection `json:"sectionArray,omitempty"`
 	Option       map[string]string      `json:"option,omitempty"`
 }
 
