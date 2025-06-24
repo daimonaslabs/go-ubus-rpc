@@ -57,10 +57,10 @@ type ConfigSection interface {
 // implements ConfigSection
 // implements json.Marshaler and json.Unmarshaler
 type StaticSectionOptions struct {
-	Anonymous bool   `json:".anonymous,omitempty"`
-	Type      string `json:".type,omitempty"`
-	Name      string `json:".name,omitempty"`
-	Index     int    `json:".index,omitempty"`
+	Anonymous bool   `json:".anonymous"`
+	Type      string `json:".type"`
+	Name      string `json:".name"`
+	Index     int    `json:".index"`
 }
 
 func (s StaticSectionOptions) IsAnonymous() bool {
@@ -97,13 +97,14 @@ func (b Bool) MarshalJSON() ([]byte, error) {
 // unmarshals from "1" or "0" back to true or false
 func (b *Bool) UnmarshalJSON(data []byte) error {
 	val := strings.ReplaceAll(string(data), "\"", "")
-	if val == "1" {
+	switch val {
+	case "1":
 		*b = Bool(true)
 		return nil
-	} else if val == "0" {
+	case "0":
 		*b = Bool(false)
 		return nil
-	} else {
+	default:
 		return errors.New("invalid string value for bool")
 	}
 }
