@@ -28,6 +28,7 @@ import (
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/dhcp"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/wireless"
 )
 
 func NewUCICommand() *cobra.Command {
@@ -469,6 +470,8 @@ func (o *SetOptions) Run(c *cobra.Command) (err error) {
 			uciSetOpts = unmarshalCLIValues[firewall.RuleSectionOptions](o)
 		case string(firewall.Zone):
 			uciSetOpts = unmarshalCLIValues[firewall.ZoneSectionOptions](o)
+		case string(wireless.WifiDevice):
+			uciSetOpts = unmarshalCLIValues[wireless.WifiDeviceSectionOptions](o)
 		}
 
 		ctx := c.Context()

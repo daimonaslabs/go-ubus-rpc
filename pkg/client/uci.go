@@ -25,6 +25,7 @@ import (
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/dhcp"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/wireless"
 )
 
 type UCIInterface interface {
@@ -296,6 +297,8 @@ func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 				case firewall.RuleSection:
 					u.Sections = append(u.Sections, s)
 				case firewall.ZoneSection:
+					u.Sections = append(u.Sections, s)
+				case wireless.WifiDeviceSection:
 					u.Sections = append(u.Sections, s)
 				}
 			}
@@ -651,6 +654,8 @@ func unmarshalRawSection(data []byte) (section uci.ConfigSection, err error) {
 		section, err = unmarshalRawResult[firewall.RuleSection](data)
 	case string(firewall.Zone):
 		section, err = unmarshalRawResult[firewall.ZoneSection](data)
+	case string(wireless.WifiDevice):
+		section, err = unmarshalRawResult[wireless.WifiDeviceSection](data)
 	default:
 		return nil, errors.New("invalid config section")
 	}
