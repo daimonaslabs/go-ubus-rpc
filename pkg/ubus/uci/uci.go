@@ -26,16 +26,16 @@ import (
 
 const (
 	// the names of all the default configs managed by UCI
-	DHCP     = "dhcp"
-	Dropbear = "dropbear"
+	DHCP = "dhcp"
+	//Dropbear = "dropbear"
 	Firewall = "firewall"
-	LuCI     = "luci"
-	Network  = "network"
-	RPCD     = "rpcd"
-	System   = "system"
-	UBootEnv = "ubootenv"
-	UCITrack = "ucitrack"
-	UHTTPd   = "uhttpd"
+	//LuCI     = "luci"
+	//Network  = "network"
+	//RPCD     = "rpcd"
+	//System   = "system"
+	//UBootEnv = "ubootenv"
+	//UCITrack = "ucitrack"
+	//UHTTPd   = "uhttpd"
 	Wireless = "wireless"
 )
 
@@ -44,7 +44,7 @@ var (
 )
 
 func init() {
-	Configs = []string{DHCP, Dropbear, Firewall, LuCI, Network, RPCD, System, UBootEnv, UCITrack, UHTTPd, Wireless}
+	Configs = []string{DHCP, Firewall, Wireless} // Dropbear, LuCI, Network, RPCD, System, UBootEnv, UCITrack, UHTTPd,
 }
 
 type ConfigSection interface {
