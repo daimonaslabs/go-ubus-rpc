@@ -178,3 +178,103 @@ type WifiDeviceSectionOptions struct {
 }
 
 func (WifiDeviceSectionOptions) IsConfigSectionOptions() {}
+
+type WifiIfaceSection struct {
+	uci.StaticSectionOptions `json:",inline"`
+	WifiIfaceSectionOptions  `json:",inline"`
+}
+
+func (in *WifiIfaceSection) DeepCopyInto(out *WifiIfaceSection) {
+	*out = *in
+}
+
+type WifiIfaceSectionOptions struct {
+	// BSSID override (used in adhoc/sta/WDS mode).
+	BSSID *string `json:"bssid,omitempty"`
+	// List of supported basic data rates (in kb/s).
+	BasicRate []uci.Int `json:"basic_rate,omitempty"`
+	// Isolates clients across different radios on the same bridge.
+	BridgeIsolate *uci.Bool `json:"bridge_isolate,omitempty"`
+	// Delivery traffic indication message period (1–255).
+	DTIMPeriod *uci.Int `json:"dtim_period,omitempty"`
+	// Disables the wireless network interface.
+	Disabled *uci.Bool `json:"disabled,omitempty"`
+	// For STA: disables network block by default.
+	DefaultDisabled *uci.Bool `json:"default_disabled,omitempty"`
+	// Specifies the Wi-Fi adapter (must match a wifi-device).
+	Device *string `json:"device"`
+	// Enables 802.11h support.
+	Doth *uci.Bool `json:"doth,omitempty"`
+	// Sets WPA/WEP encryption method.
+	Encryption *string `json:"encryption,omitempty"`
+	// Custom interface name (max 15 characters).
+	IfName *string `json:"ifname,omitempty"`
+	// Enables client-to-client isolation on AP.
+	Isolate *uci.Bool `json:"isolate,omitempty"`
+	// Used for 802.11f IAPP.
+	IAPPInterface *string `json:"iapp_interface,omitempty"`
+	// Enables 802.11w (MFP): 0 = disabled, 1 = optional, 2 = required.
+	IEEE80211w *uci.Int `json:"ieee80211w,omitempty"`
+	// Maximum timeout for 802.11w SA Query (ms).
+	IEEE80211wMaxTimeout *uci.Int `json:"ieee80211w_max_timeout,omitempty"`
+	// Retry timeout for 802.11w SA Query (ms).
+	IEEE80211wRetryTimeout *uci.Int `json:"ieee80211w_retry_timeout,omitempty"`
+	// Additional hostapd BSS options.
+	HostapdBSSOptions uci.List `json:"hostapd_bss_options,omitempty"`
+	// Whether SSID should be hidden from beacon frames.
+	Hidden *uci.Bool `json:"hidden,omitempty"`
+	// Sets the maximum STA listen interval allowed.
+	MaxListenInterval *uci.Int `json:"max_listen_int,omitempty"`
+	// Maximum number of clients allowed to connect.
+	MaxAssoc *uci.Int `json:"maxassoc,omitempty"`
+	// Override MAC address, or set to "random".
+	MACAddr *string `json:"macaddr,omitempty"`
+	// MAC filter policy: disable, allow, deny.
+	MACFilter *string `json:"macfilter,omitempty"`
+	// List of MACs for the MAC filter.
+	MACList *uci.List `json:"maclist,omitempty"`
+	// Join this mesh ID (IEEE 802.11s).
+	MeshID *string `json:"mesh_id,omitempty"`
+	// Multicast rate (in kb/s). Only in mesh/adhoc.
+	McastRate *uci.Int `json:"mcast_rate,omitempty"`
+	// Operating mode: ap, sta, adhoc, mesh, monitor.
+	Mode *string `json:"mode"`
+	// Logical networks attached (L3 bridge).
+	Network uci.List `json:"network"`
+	// Opportunistic Wireless Encryption (OWE) BSSID.
+	OWETransitionBSSID *string `json:"owe_transition_bssid,omitempty"`
+	// Opportunistic Wireless Encryption (OWE) SSID.
+	OWETransitionSSID *string `json:"owe_transition_ssid,omitempty"`
+	// Operating Channel Validation (OCV) config: 0–2.
+	OCV *uci.Int `json:"ocv,omitempty"`
+	// Wireless passphrase or key (WPA/WEP).
+	Key *string `json:"key,omitempty"`
+	// WEP key slot 1.
+	Key1 *string `json:"key1,omitempty"`
+	// WEP key slot 2.
+	Key2 *string `json:"key2,omitempty"`
+	// WEP key slot 3.
+	Key3 *string `json:"key3,omitempty"`
+	// WEP key slot 4.
+	Key4 *string `json:"key4,omitempty"`
+	// RSN Preauthentication for WPA2-EAP.
+	RSNPreauth *uci.Bool `json:"rsn_preauth,omitempty"`
+	// Require MFP for SAE associations.
+	SAERequireMFP *uci.Bool `json:"sae_require_mfp,omitempty"`
+	// SAE PWE mechanism: 0 = hunting, 1 = hash, 2 = both.
+	SAEPWE *uci.Int `json:"sae_pwe,omitempty"`
+	// SSID to broadcast or connect to.
+	SSID *string `json:"ssid"`
+	// Start with AP beaconing disabled.
+	StartDisabled *uci.Bool `json:"start_disabled,omitempty"`
+	// Use of short preamble.
+	ShortPreamble *uci.Bool `json:"short_preamble,omitempty"`
+	// Supported data rates (in kb/s).
+	SupportedRates []uci.Int `json:"supported_rates,omitempty"`
+	// Enables 4-address mode (WDS).
+	WDS *uci.Bool `json:"wds,omitempty"`
+	// Enables Wi-Fi Multimedia (WMM) QoS mode.
+	WMM *uci.Bool `json:"wmm,omitempty"`
+}
+
+func (WifiIfaceSectionOptions) IsConfigSectionOptions() {}

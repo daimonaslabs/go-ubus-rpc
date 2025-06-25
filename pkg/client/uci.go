@@ -300,6 +300,8 @@ func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 					u.Sections = append(u.Sections, s)
 				case wireless.WifiDeviceSection:
 					u.Sections = append(u.Sections, s)
+				case wireless.WifiIfaceSection:
+					u.Sections = append(u.Sections, s)
 				}
 			}
 		default:
@@ -656,6 +658,8 @@ func unmarshalRawSection(data []byte) (section uci.ConfigSection, err error) {
 		section, err = unmarshalRawResult[firewall.ZoneSection](data)
 	case string(wireless.WifiDevice):
 		section, err = unmarshalRawResult[wireless.WifiDeviceSection](data)
+	case string(wireless.WifiIface):
+		section, err = unmarshalRawResult[wireless.WifiIfaceSection](data)
 	default:
 		return nil, errors.New("invalid config section")
 	}

@@ -472,6 +472,8 @@ func (o *SetOptions) Run(c *cobra.Command) (err error) {
 			uciSetOpts = unmarshalCLIValues[firewall.ZoneSectionOptions](o)
 		case string(wireless.WifiDevice):
 			uciSetOpts = unmarshalCLIValues[wireless.WifiDeviceSectionOptions](o)
+		case string(wireless.WifiIface):
+			uciSetOpts = unmarshalCLIValues[wireless.WifiIfaceSectionOptions](o)
 		}
 
 		ctx := c.Context()
