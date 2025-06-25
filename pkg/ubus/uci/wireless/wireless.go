@@ -202,7 +202,7 @@ type WifiIfaceSectionOptions struct {
 	// For STA: disables network block by default.
 	DefaultDisabled *uci.Bool `json:"default_disabled,omitempty"`
 	// Specifies the Wi-Fi adapter (must match a wifi-device).
-	Device *string `json:"device"`
+	Device *string `json:"device,omitempty"`
 	// Enables 802.11h support.
 	Doth *uci.Bool `json:"doth,omitempty"`
 	// Sets WPA/WEP encryption method.
@@ -238,9 +238,9 @@ type WifiIfaceSectionOptions struct {
 	// Multicast rate (in kb/s). Only in mesh/adhoc.
 	McastRate *uci.Int `json:"mcast_rate,omitempty"`
 	// Operating mode: ap, sta, adhoc, mesh, monitor.
-	Mode *string `json:"mode"`
+	Mode *string `json:"mode,omitempty"`
 	// Logical networks attached (L3 bridge).
-	Network uci.List `json:"network"`
+	Network uci.List `json:"network,omitempty"`
 	// Opportunistic Wireless Encryption (OWE) BSSID.
 	OWETransitionBSSID *string `json:"owe_transition_bssid,omitempty"`
 	// Opportunistic Wireless Encryption (OWE) SSID.
@@ -264,7 +264,7 @@ type WifiIfaceSectionOptions struct {
 	// SAE PWE mechanism: 0 = hunting, 1 = hash, 2 = both.
 	SAEPWE *uci.Int `json:"sae_pwe,omitempty"`
 	// SSID to broadcast or connect to.
-	SSID *string `json:"ssid"`
+	SSID *string `json:"ssid,omitempty"`
 	// Start with AP beaconing disabled.
 	StartDisabled *uci.Bool `json:"start_disabled,omitempty"`
 	// Use of short preamble.
