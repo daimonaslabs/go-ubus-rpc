@@ -29,12 +29,12 @@ const (
 	DHCP     = "dhcp"
 	Dropbear = "dropbear"
 	Firewall = "firewall"
-	LuCI     = "luci"
-	Network  = "network"
-	RPCD     = "rpcd"
-	System   = "system"
-	UBootEnv = "ubootenv"
-	UCITrack = "ucitrack"
+	//LuCI     = "luci"
+	Network = "network"
+	//RPCD     = "rpcd"
+	System = "system"
+	//UBootEnv = "ubootenv"
+	//UCITrack = "ucitrack"
 	UHTTPd   = "uhttpd"
 	Wireless = "wireless"
 )
@@ -44,7 +44,7 @@ var (
 )
 
 func init() {
-	Configs = []string{DHCP, Dropbear, Firewall, LuCI, Network, RPCD, System, UBootEnv, UCITrack, UHTTPd, Wireless}
+	Configs = []string{DHCP, Dropbear, Firewall, Network, System, UHTTPd, Wireless} //, LuCI, Network, RPCD, UBootEnv, UCITrack
 }
 
 type ConfigSection interface {
@@ -57,10 +57,10 @@ type ConfigSection interface {
 // implements ConfigSection
 // implements json.Marshaler and json.Unmarshaler
 type StaticSectionOptions struct {
-	Anonymous bool   `json:".anonymous,omitempty"`
-	Type      string `json:".type,omitempty"`
-	Name      string `json:".name,omitempty"`
-	Index     int    `json:".index,omitempty"`
+	Anonymous bool   `json:".anonymous"`
+	Type      string `json:".type"`
+	Name      string `json:".name"`
+	Index     int    `json:".index"`
 }
 
 func (s StaticSectionOptions) IsAnonymous() bool {
@@ -85,6 +85,11 @@ type ConfigSectionOptions interface {
 
 type Bool bool
 
+func BoolPtr(b bool) *Bool {
+	ptr := Bool(b)
+	return &ptr
+}
+
 // marshals the bool to a string value of "1" or "0"
 func (b Bool) MarshalJSON() ([]byte, error) {
 	if b {
@@ -94,21 +99,27 @@ func (b Bool) MarshalJSON() ([]byte, error) {
 	}
 }
 
-// unmarshals from "1" or "0" back to true or false
+// unmarshals from "1"/"on" or "0"/"off" back to true or false
 func (b *Bool) UnmarshalJSON(data []byte) error {
 	val := strings.ReplaceAll(string(data), "\"", "")
-	if val == "1" {
+	switch val {
+	case "1", "on":
 		*b = Bool(true)
 		return nil
-	} else if val == "0" {
+	case "0", "off":
 		*b = Bool(false)
 		return nil
-	} else {
+	default:
 		return errors.New("invalid string value for bool")
 	}
 }
 
 type Int int
+
+func IntPtr(i int) *Int {
+	ptr := Int(i)
+	return &ptr
+}
 
 // marshals int to a string
 func (i Int) MarshalJSON() ([]byte, error) {

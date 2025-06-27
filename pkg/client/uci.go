@@ -21,10 +21,16 @@ import (
 	"encoding/json"
 	"errors"
 	"reflect"
+	"sort"
 
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/dhcp"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/dropbear"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/network"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/system"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/uhttpd"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/wireless"
 )
 
 type UCIInterface interface {
@@ -283,6 +289,8 @@ func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 					u.Sections = append(u.Sections, s)
 				case dhcp.VendorClassSection:
 					u.Sections = append(u.Sections, s)
+				case dropbear.DropbearSection:
+					u.Sections = append(u.Sections, s)
 				case firewall.DefaultsSection:
 					u.Sections = append(u.Sections, s)
 				case firewall.ForwardingSection:
@@ -297,6 +305,32 @@ func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 					u.Sections = append(u.Sections, s)
 				case firewall.ZoneSection:
 					u.Sections = append(u.Sections, s)
+				case network.BridgeVLANSection:
+					u.Sections = append(u.Sections, s)
+				case network.DeviceSection:
+					u.Sections = append(u.Sections, s)
+				case network.GlobalsSection:
+					u.Sections = append(u.Sections, s)
+				case network.InterfaceSection:
+					u.Sections = append(u.Sections, s)
+				case network.SwitchSection:
+					u.Sections = append(u.Sections, s)
+				case network.SwitchPortSection:
+					u.Sections = append(u.Sections, s)
+				case network.SwitchVLANSection:
+					u.Sections = append(u.Sections, s)
+				case system.SystemSection:
+					u.Sections = append(u.Sections, s)
+				case system.TimeserverSection:
+					u.Sections = append(u.Sections, s)
+				case uhttpd.CertSection:
+					u.Sections = append(u.Sections, s)
+				case uhttpd.UHTTPdSection:
+					u.Sections = append(u.Sections, s)
+				case wireless.WifiDeviceSection:
+					u.Sections = append(u.Sections, s)
+				case wireless.WifiIfaceSection:
+					u.Sections = append(u.Sections, s)
 				}
 			}
 		default:
@@ -305,6 +339,9 @@ func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 	} else { // error
 		return u, errors.New(p[0].(ExitCode).Error())
 	}
+	sort.Slice(u.Sections, func(i, j int) bool {
+		return u.Sections[i].GetIndex() < u.Sections[j].GetIndex()
+	})
 	return u, err
 }
 
@@ -637,6 +674,8 @@ func unmarshalRawSection(data []byte) (section uci.ConfigSection, err error) {
 		section, err = unmarshalRawResult[dhcp.UserClassSection](data)
 	case string(dhcp.VendorClass):
 		section, err = unmarshalRawResult[dhcp.VendorClassSection](data)
+	case string(dropbear.Dropbear):
+		section, err = unmarshalRawResult[dropbear.DropbearSection](data)
 	case string(firewall.Defaults):
 		section, err = unmarshalRawResult[firewall.DefaultsSection](data)
 	case string(firewall.Forwarding):
@@ -651,6 +690,32 @@ func unmarshalRawSection(data []byte) (section uci.ConfigSection, err error) {
 		section, err = unmarshalRawResult[firewall.RuleSection](data)
 	case string(firewall.Zone):
 		section, err = unmarshalRawResult[firewall.ZoneSection](data)
+	case string(network.BridgeVLAN):
+		section, err = unmarshalRawResult[network.BridgeVLANSection](data)
+	case string(network.Device):
+		section, err = unmarshalRawResult[network.DeviceSection](data)
+	case string(network.Globals):
+		section, err = unmarshalRawResult[network.GlobalsSection](data)
+	case string(network.Interface):
+		section, err = unmarshalRawResult[network.InterfaceSection](data)
+	case string(network.Switch):
+		section, err = unmarshalRawResult[network.SwitchSection](data)
+	case string(network.SwitchPort):
+		section, err = unmarshalRawResult[network.SwitchPortSection](data)
+	case string(network.SwitchVLAN):
+		section, err = unmarshalRawResult[network.SwitchVLANSection](data)
+	case string(system.System):
+		section, err = unmarshalRawResult[system.SystemSection](data)
+	case string(system.Timeserver):
+		section, err = unmarshalRawResult[system.TimeserverSection](data)
+	case string(uhttpd.Cert):
+		section, err = unmarshalRawResult[uhttpd.CertSection](data)
+	case string(uhttpd.UHTTPd):
+		section, err = unmarshalRawResult[uhttpd.UHTTPdSection](data)
+	case string(wireless.WifiDevice):
+		section, err = unmarshalRawResult[wireless.WifiDeviceSection](data)
+	case string(wireless.WifiIface):
+		section, err = unmarshalRawResult[wireless.WifiIfaceSection](data)
 	default:
 		return nil, errors.New("invalid config section")
 	}
