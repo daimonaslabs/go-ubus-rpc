@@ -31,6 +31,7 @@ import (
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/network"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/system"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/uhttpd"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/wireless"
 )
 
@@ -493,6 +494,10 @@ func (o *SetOptions) Run(c *cobra.Command) (err error) {
 			uciSetOpts = unmarshalCLIValues[system.SystemSectionOptions](o)
 		case string(system.Timeserver):
 			uciSetOpts = unmarshalCLIValues[system.TimeserverSectionOptions](o)
+		case string(uhttpd.Cert):
+			uciSetOpts = unmarshalCLIValues[uhttpd.CertSectionOptions](o)
+		case string(uhttpd.UHTTPd):
+			uciSetOpts = unmarshalCLIValues[uhttpd.UHTTPdSectionOptions](o)
 		case string(wireless.WifiDevice):
 			uciSetOpts = unmarshalCLIValues[wireless.WifiDeviceSectionOptions](o)
 		case string(wireless.WifiIface):

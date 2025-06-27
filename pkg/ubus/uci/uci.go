@@ -35,7 +35,7 @@ const (
 	System = "system"
 	//UBootEnv = "ubootenv"
 	//UCITrack = "ucitrack"
-	//UHTTPd   = "uhttpd"
+	UHTTPd   = "uhttpd"
 	Wireless = "wireless"
 )
 
@@ -44,7 +44,7 @@ var (
 )
 
 func init() {
-	Configs = []string{DHCP, Dropbear, Firewall, Network, System, Wireless} //, LuCI, Network, RPCD, UBootEnv, UCITrack, UHTTPd,
+	Configs = []string{DHCP, Dropbear, Firewall, Network, System, UHTTPd, Wireless} //, LuCI, Network, RPCD, UBootEnv, UCITrack
 }
 
 type ConfigSection interface {
