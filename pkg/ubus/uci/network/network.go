@@ -1,6 +1,8 @@
 package network
 
-import "github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
+import (
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
+)
 
 const (
 	// the name of this config
