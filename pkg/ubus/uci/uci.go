@@ -26,8 +26,8 @@ import (
 
 const (
 	// the names of all the default configs managed by UCI
-	DHCP = "dhcp"
-	//Dropbear = "dropbear"
+	DHCP     = "dhcp"
+	Dropbear = "dropbear"
 	Firewall = "firewall"
 	//LuCI     = "luci"
 	//Network  = "network"
@@ -44,7 +44,7 @@ var (
 )
 
 func init() {
-	Configs = []string{DHCP, Firewall, Wireless} // Dropbear, LuCI, Network, RPCD, System, UBootEnv, UCITrack, UHTTPd,
+	Configs = []string{DHCP, Firewall, Wireless, Dropbear} //, LuCI, Network, RPCD, System, UBootEnv, UCITrack, UHTTPd,
 }
 
 type ConfigSection interface {
@@ -85,6 +85,11 @@ type ConfigSectionOptions interface {
 
 type Bool bool
 
+func BoolPtr(b bool) *Bool {
+	ptr := Bool(b)
+	return &ptr
+}
+
 // marshals the bool to a string value of "1" or "0"
 func (b Bool) MarshalJSON() ([]byte, error) {
 	if b {
@@ -94,14 +99,14 @@ func (b Bool) MarshalJSON() ([]byte, error) {
 	}
 }
 
-// unmarshals from "1" or "0" back to true or false
+// unmarshals from "1"/"on" or "0"/"off" back to true or false
 func (b *Bool) UnmarshalJSON(data []byte) error {
 	val := strings.ReplaceAll(string(data), "\"", "")
 	switch val {
-	case "1":
+	case "1", "on":
 		*b = Bool(true)
 		return nil
-	case "0":
+	case "0", "off":
 		*b = Bool(false)
 		return nil
 	default:
@@ -110,6 +115,11 @@ func (b *Bool) UnmarshalJSON(data []byte) error {
 }
 
 type Int int
+
+func IntPtr(i int) *Int {
+	ptr := Int(i)
+	return &ptr
+}
 
 // marshals int to a string
 func (i Int) MarshalJSON() ([]byte, error) {

@@ -81,9 +81,8 @@ func TestUCIAddSetDelete(t *testing.T) {
 	addResult, err := uciAddOpts.GetResult(addResponse)
 	checkErr(t, err)
 
-	enabled := uci.Bool(true)
 	forwardingSectionOptions := firewall.ForwardingSectionOptions{
-		Enabled: &enabled,
+		Enabled: uci.BoolPtr(true),
 	}
 	uciSetOpts := UCISetOptions{Config: firewall.Config, Section: addResult.Section, Values: forwardingSectionOptions}
 	_, err = rpc.UCI().Set(ctx, uciSetOpts)
