@@ -24,6 +24,7 @@ import (
 
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/dhcp"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/dropbear"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/wireless"
 )
@@ -283,6 +284,8 @@ func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 				case dhcp.UserClassSection:
 					u.Sections = append(u.Sections, s)
 				case dhcp.VendorClassSection:
+					u.Sections = append(u.Sections, s)
+				case dropbear.DropbearSection:
 					u.Sections = append(u.Sections, s)
 				case firewall.DefaultsSection:
 					u.Sections = append(u.Sections, s)
@@ -642,6 +645,8 @@ func unmarshalRawSection(data []byte) (section uci.ConfigSection, err error) {
 		section, err = unmarshalRawResult[dhcp.UserClassSection](data)
 	case string(dhcp.VendorClass):
 		section, err = unmarshalRawResult[dhcp.VendorClassSection](data)
+	case string(dropbear.Dropbear):
+		section, err = unmarshalRawResult[dropbear.DropbearSection](data)
 	case string(firewall.Defaults):
 		section, err = unmarshalRawResult[firewall.DefaultsSection](data)
 	case string(firewall.Forwarding):

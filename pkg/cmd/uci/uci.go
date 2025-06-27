@@ -27,6 +27,7 @@ import (
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/client"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/dhcp"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/dropbear"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/wireless"
 )
@@ -429,33 +430,35 @@ func (o *SetOptions) Run(c *cobra.Command) (err error) {
 		uciSetOpts := client.UCISetOptions{}
 		switch o.Type {
 		case string(dhcp.Boot):
-			uciSetOpts = unmarshalCLIValues[dhcp.BootSection](o)
+			uciSetOpts = unmarshalCLIValues[dhcp.BootSectionOptions](o)
 		case string(dhcp.CircuitID):
-			uciSetOpts = unmarshalCLIValues[dhcp.CircuitIDSection](o)
+			uciSetOpts = unmarshalCLIValues[dhcp.CircuitIDSectionOptions](o)
 		case string(dhcp.DHCP):
-			uciSetOpts = unmarshalCLIValues[dhcp.DHCPSection](o)
+			uciSetOpts = unmarshalCLIValues[dhcp.DHCPSectionOptions](o)
 		case string(dhcp.Dnsmasq):
-			uciSetOpts = unmarshalCLIValues[dhcp.DnsmasqSection](o)
+			uciSetOpts = unmarshalCLIValues[dhcp.DnsmasqSectionOptions](o)
 		case string(dhcp.Host):
-			uciSetOpts = unmarshalCLIValues[dhcp.HostSection](o)
+			uciSetOpts = unmarshalCLIValues[dhcp.HostSectionOptions](o)
 		case string(dhcp.HostRecord):
-			uciSetOpts = unmarshalCLIValues[dhcp.HostRecordSection](o)
+			uciSetOpts = unmarshalCLIValues[dhcp.HostRecordSectionOptions](o)
 		case string(dhcp.MAC):
-			uciSetOpts = unmarshalCLIValues[dhcp.MACSection](o)
+			uciSetOpts = unmarshalCLIValues[dhcp.MACSectionOptions](o)
 		case string(dhcp.Odhcpd):
-			uciSetOpts = unmarshalCLIValues[dhcp.OdhcpdSection](o)
+			uciSetOpts = unmarshalCLIValues[dhcp.OdhcpdSectionOptions](o)
 		case string(dhcp.Relay):
-			uciSetOpts = unmarshalCLIValues[dhcp.RelaySection](o)
+			uciSetOpts = unmarshalCLIValues[dhcp.RelaySectionOptions](o)
 		case string(dhcp.RemoteID):
-			uciSetOpts = unmarshalCLIValues[dhcp.RemoteIDSection](o)
+			uciSetOpts = unmarshalCLIValues[dhcp.RemoteIDSectionOptions](o)
 		case string(dhcp.SubscrID):
-			uciSetOpts = unmarshalCLIValues[dhcp.SubscrIDSection](o)
+			uciSetOpts = unmarshalCLIValues[dhcp.SubscrIDSectionOptions](o)
 		case string(dhcp.Tag):
-			uciSetOpts = unmarshalCLIValues[dhcp.TagSection](o)
+			uciSetOpts = unmarshalCLIValues[dhcp.TagSectionOptions](o)
 		case string(dhcp.UserClass):
-			uciSetOpts = unmarshalCLIValues[dhcp.UserClassSection](o)
+			uciSetOpts = unmarshalCLIValues[dhcp.UserClassSectionOptions](o)
 		case string(dhcp.VendorClass):
-			uciSetOpts = unmarshalCLIValues[dhcp.VendorClassSection](o)
+			uciSetOpts = unmarshalCLIValues[dhcp.VendorClassSectionOptions](o)
+		case string(dropbear.Dropbear):
+			uciSetOpts = unmarshalCLIValues[dropbear.DropbearSectionOptions](o)
 		case string(firewall.Defaults):
 			uciSetOpts = unmarshalCLIValues[firewall.DefaultsSectionOptions](o)
 		case string(firewall.Forwarding):
@@ -475,7 +478,7 @@ func (o *SetOptions) Run(c *cobra.Command) (err error) {
 		case string(wireless.WifiIface):
 			uciSetOpts = unmarshalCLIValues[wireless.WifiIfaceSectionOptions](o)
 		}
-
+		fmt.Println(uciSetOpts.Values)
 		ctx := c.Context()
 		rpc := client.GetFromContext(c.Context())
 		response, err := rpc.UCI().Set(ctx, uciSetOpts)
