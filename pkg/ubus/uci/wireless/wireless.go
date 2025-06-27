@@ -220,7 +220,7 @@ type WifiIfaceSectionOptions struct {
 	// Retry timeout for 802.11w SA Query (ms).
 	IEEE80211wRetryTimeout *uci.Int `json:"ieee80211w_retry_timeout,omitempty"`
 	// Additional hostapd BSS options.
-	HostapdBSSOptions uci.List `json:"hostapd_bss_options,omitempty"`
+	HostapdBSSOptions *uci.List `json:"hostapd_bss_options,omitempty"`
 	// Whether SSID should be hidden from beacon frames.
 	Hidden *uci.Bool `json:"hidden,omitempty"`
 	// Sets the maximum STA listen interval allowed.

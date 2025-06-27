@@ -202,7 +202,7 @@ func (in *IPSetSection) DeepCopyInto(out *IPSetSection) {
 type IPSetSectionOptions struct {
 	// The IP address, CIDR, or MAC. Each list entry is a single CIDR, or IP etc when not using ranges or masks etc
 	// above.
-	Entry uci.List `json:"entry,omitempty"`
+	Entry *uci.List `json:"entry,omitempty"`
 	// Allows to disable the declaration of the ipset without the need to delete the section.
 	Enabled *uci.Bool `json:"enabled,omitempty"`
 	// If the external option is set to a name, the firewall will simply reference an already existing ipset pointed
@@ -223,7 +223,7 @@ type IPSetSectionOptions struct {
 	// or dest_net to match destination CIDR ranges. When using ipsets matching on multiple elements,
 	// e.g. hash:ip,port, specify the packet fields to match on in quotes or comma-separated
 	// (i.e. “match dest_ip dest_port”).
-	Match uci.List `json:"match,omitempty"`
+	Match *uci.List `json:"match,omitempty"`
 	// Limits the number of items that can be added to the set, only applicable to the hash and list storage types.
 	MaxElem *uci.Int `json:"maxelem,omitempty"`
 	// Specifies the firewall internal name of the ipset which is used to reference the set in rules or redirects.
