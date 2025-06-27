@@ -42,7 +42,7 @@ func init() {
 	Sections = []string{Defaults, Forwarding, IPSet, Include, Redirect, Rule, Zone}
 }
 
-// Used by RuleSection.ICMPType
+// used by RuleSection.ICMPType
 var ICMPTypes = []string{
 	"address-mask-reply",
 	"address-mask-request",
@@ -91,16 +91,16 @@ var ICMPTypes = []string{
 }
 
 var IPSetTypes = []string{
-	"src_ip",
-	"src_port",
-	"src_mac",
-	"src_net",
-	"src_set",
 	"dest_ip",
 	"dest_port",
 	"dest_mac",
 	"dest_net",
 	"dest_set",
+	"src_ip",
+	"src_port",
+	"src_mac",
+	"src_net",
+	"src_set",
 }
 
 type DefaultsSection struct {
