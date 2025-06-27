@@ -28,6 +28,7 @@ import (
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/dropbear"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/network"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/system"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/wireless"
 )
 
@@ -316,6 +317,10 @@ func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 				case network.SwitchPortSection:
 					u.Sections = append(u.Sections, s)
 				case network.SwitchVLANSection:
+					u.Sections = append(u.Sections, s)
+				case system.SystemSection:
+					u.Sections = append(u.Sections, s)
+				case system.TimeserverSection:
 					u.Sections = append(u.Sections, s)
 				case wireless.WifiDeviceSection:
 					u.Sections = append(u.Sections, s)
@@ -694,6 +699,10 @@ func unmarshalRawSection(data []byte) (section uci.ConfigSection, err error) {
 		section, err = unmarshalRawResult[network.SwitchPortSection](data)
 	case string(network.SwitchVLAN):
 		section, err = unmarshalRawResult[network.SwitchVLANSection](data)
+	case string(system.System):
+		section, err = unmarshalRawResult[system.SystemSection](data)
+	case string(system.Timeserver):
+		section, err = unmarshalRawResult[system.TimeserverSection](data)
 	case string(wireless.WifiDevice):
 		section, err = unmarshalRawResult[wireless.WifiDeviceSection](data)
 	case string(wireless.WifiIface):

@@ -30,6 +30,7 @@ import (
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/dropbear"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/network"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/system"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/wireless"
 )
 
@@ -488,6 +489,10 @@ func (o *SetOptions) Run(c *cobra.Command) (err error) {
 			uciSetOpts = unmarshalCLIValues[network.SwitchPortSectionOptions](o)
 		case string(network.SwitchVLAN):
 			uciSetOpts = unmarshalCLIValues[network.SwitchVLANSectionOptions](o)
+		case string(system.System):
+			uciSetOpts = unmarshalCLIValues[system.SystemSectionOptions](o)
+		case string(system.Timeserver):
+			uciSetOpts = unmarshalCLIValues[system.TimeserverSectionOptions](o)
 		case string(wireless.WifiDevice):
 			uciSetOpts = unmarshalCLIValues[wireless.WifiDeviceSectionOptions](o)
 		case string(wireless.WifiIface):
