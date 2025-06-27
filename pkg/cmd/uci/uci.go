@@ -29,6 +29,7 @@ import (
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/dhcp"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/dropbear"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/network"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/wireless"
 )
 
@@ -473,6 +474,20 @@ func (o *SetOptions) Run(c *cobra.Command) (err error) {
 			uciSetOpts = unmarshalCLIValues[firewall.RuleSectionOptions](o)
 		case string(firewall.Zone):
 			uciSetOpts = unmarshalCLIValues[firewall.ZoneSectionOptions](o)
+		case string(network.BridgeVLAN):
+			uciSetOpts = unmarshalCLIValues[network.BridgeVLANSectionOptions](o)
+		case string(network.Device):
+			uciSetOpts = unmarshalCLIValues[network.DeviceSectionOptions](o)
+		case string(network.Globals):
+			uciSetOpts = unmarshalCLIValues[network.GlobalsSectionOptions](o)
+		case string(network.Interface):
+			uciSetOpts = unmarshalCLIValues[network.InterfaceSectionOptions](o)
+		case string(network.Switch):
+			uciSetOpts = unmarshalCLIValues[network.SwitchSectionOptions](o)
+		case string(network.SwitchPort):
+			uciSetOpts = unmarshalCLIValues[network.SwitchPortSectionOptions](o)
+		case string(network.SwitchVLAN):
+			uciSetOpts = unmarshalCLIValues[network.SwitchVLANSectionOptions](o)
 		case string(wireless.WifiDevice):
 			uciSetOpts = unmarshalCLIValues[wireless.WifiDeviceSectionOptions](o)
 		case string(wireless.WifiIface):

@@ -30,7 +30,7 @@ const (
 	Dropbear = "dropbear"
 	Firewall = "firewall"
 	//LuCI     = "luci"
-	//Network  = "network"
+	Network = "network"
 	//RPCD     = "rpcd"
 	//System   = "system"
 	//UBootEnv = "ubootenv"
@@ -44,7 +44,7 @@ var (
 )
 
 func init() {
-	Configs = []string{DHCP, Firewall, Wireless, Dropbear} //, LuCI, Network, RPCD, System, UBootEnv, UCITrack, UHTTPd,
+	Configs = []string{DHCP, Dropbear, Firewall, Network, Wireless} //, LuCI, Network, RPCD, System, UBootEnv, UCITrack, UHTTPd,
 }
 
 type ConfigSection interface {
