@@ -503,7 +503,7 @@ func (o *SetOptions) Run(c *cobra.Command) (err error) {
 		case string(wireless.WifiIface):
 			uciSetOpts = unmarshalCLIValues[wireless.WifiIfaceSectionOptions](o)
 		}
-		fmt.Println(uciSetOpts.Values)
+
 		ctx := c.Context()
 		rpc := client.GetFromContext(c.Context())
 		response, err := rpc.UCI().Set(ctx, uciSetOpts)
