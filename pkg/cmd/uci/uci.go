@@ -25,7 +25,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/client"
-	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/client/uci"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/rpc"
+	types "github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/dhcp"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/dropbear"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci/firewall"
@@ -41,12 +43,12 @@ func NewUCICommand() *cobra.Command {
 		Short: "Run UCI commands.",
 		Long:  "Run UCI commands to update router configs.",
 		PersistentPreRun: func(c *cobra.Command, args []string) {
-			rpc := client.UbusRPC{}
-			configFile, err := rpc.Load()
+			urc := rpc.UbusRPCClient{}
+			configFile, err := urc.Load()
 			if err != nil {
 				log.Fatalln(configFile, "not found, you should run `gur login`!")
 			}
-			ctx := client.AddToContext(c.Context(), rpc)
+			ctx := rpc.AddToContext(c.Context(), urc)
 			c.SetContext(ctx)
 		},
 	}
@@ -96,13 +98,13 @@ func (o *AddOptions) BindFlags(c *cobra.Command) {
 
 func (o *AddOptions) Run(c *cobra.Command) (err error) {
 	if err = checkConfig(o.Config); err == nil {
-		uciAddOpts := client.UCIAddOptions{
+		uciAddOpts := uci.AddOptions{
 			Config: o.Config,
 			Type:   o.Type,
 		}
 		ctx := c.Context()
-		rpc := client.GetFromContext(c.Context())
-		response, err := rpc.UCI().Add(ctx, uciAddOpts)
+		clientset, _ := client.NewForClient(ctx, rpc.GetFromContext(c.Context()))
+		response, err := clientset.UCI().Add(ctx, uciAddOpts)
 		if err != nil {
 			return err
 		}
@@ -144,13 +146,13 @@ func (o *ApplyOptions) BindFlags(c *cobra.Command) {
 }
 
 func (o *ApplyOptions) Run(c *cobra.Command) error {
-	uciApplyOpts := client.UCIApplyOptions{
-		Rollback: uci.Bool(o.Rollback),
+	uciApplyOpts := uci.ApplyOptions{
+		Rollback: types.Bool(o.Rollback),
 		Timeout:  o.Timeout,
 	}
 	ctx := c.Context()
-	rpc := client.GetFromContext(c.Context())
-	response, err := rpc.UCI().Apply(ctx, uciApplyOpts)
+	clientset, _ := client.NewForClient(ctx, rpc.GetFromContext(c.Context()))
+	response, err := clientset.UCI().Apply(ctx, uciApplyOpts)
 	if err != nil {
 		return err
 	}
@@ -187,12 +189,12 @@ func (o *ChangesOptions) BindFlags(c *cobra.Command) {
 
 func (o *ChangesOptions) Run(c *cobra.Command) (err error) {
 	if err = checkConfig(o.Config); err == nil {
-		uciChangesOpts := client.UCIChangesOptions{
+		uciChangesOpts := uci.ChangesOptions{
 			Config: o.Config,
 		}
 		ctx := c.Context()
-		rpc := client.GetFromContext(c.Context())
-		response, err := rpc.UCI().Changes(ctx, uciChangesOpts)
+		clientset, _ := client.NewForClient(ctx, rpc.GetFromContext(c.Context()))
+		response, err := clientset.UCI().Changes(ctx, uciChangesOpts)
 		if err != nil {
 			return err
 		}
@@ -225,10 +227,10 @@ func NewConfigsCommand() *cobra.Command {
 type ConfigsOptions struct{}
 
 func (o *ConfigsOptions) Run(c *cobra.Command) error {
-	uciConfigsOpts := client.UCIConfigsOptions{}
+	uciConfigsOpts := uci.ConfigsOptions{}
 	ctx := c.Context()
-	rpc := client.GetFromContext(c.Context())
-	response, err := rpc.UCI().Configs(ctx, uciConfigsOpts)
+	clientset, _ := client.NewForClient(ctx, rpc.GetFromContext(c.Context()))
+	response, err := clientset.UCI().Configs(ctx, uciConfigsOpts)
 	if err != nil {
 		return err
 	}
@@ -275,15 +277,15 @@ func (o *DeleteOptions) BindFlags(c *cobra.Command) {
 
 func (o *DeleteOptions) Run(c *cobra.Command) (err error) {
 	if err = checkConfig(o.Config); err == nil {
-		uciDeleteOpts := client.UCIDeleteOptions{
+		uciDeleteOpts := uci.DeleteOptions{
 			Config:  o.Config,
 			Section: o.Section,
 			Type:    o.Type,
 			Option:  o.Option,
 		}
 		ctx := c.Context()
-		rpc := client.GetFromContext(c.Context())
-		response, err := rpc.UCI().Delete(ctx, uciDeleteOpts)
+		clientset, _ := client.NewForClient(ctx, rpc.GetFromContext(c.Context()))
+		response, err := clientset.UCI().Delete(ctx, uciDeleteOpts)
 		if err != nil {
 			return err
 		}
@@ -328,15 +330,15 @@ func (o *GetOptions) BindFlags(c *cobra.Command) {
 
 func (o *GetOptions) Run(c *cobra.Command) (err error) {
 	if err = checkConfig(o.Config); err == nil {
-		uciGetOpts := client.UCIGetOptions{
+		uciGetOpts := uci.GetOptions{
 			Config:  o.Config,
 			Section: o.Section,
 			Type:    o.Type,
 			Option:  o.Option,
 		}
 		ctx := c.Context()
-		rpc := client.GetFromContext(c.Context())
-		response, err := rpc.UCI().Get(ctx, uciGetOpts)
+		clientset, _ := client.NewForClient(ctx, rpc.GetFromContext(c.Context()))
+		response, err := clientset.UCI().Get(ctx, uciGetOpts)
 		if err != nil {
 			return err
 		}
@@ -378,12 +380,12 @@ func (o *RevertOptions) BindFlags(c *cobra.Command) {
 
 func (o *RevertOptions) Run(c *cobra.Command) (err error) {
 	if err = checkConfig(o.Config); err == nil {
-		uciRevertOpts := client.UCIRevertOptions{
+		uciRevertOpts := uci.RevertOptions{
 			Config: o.Config,
 		}
 		ctx := c.Context()
-		rpc := client.GetFromContext(c.Context())
-		response, err := rpc.UCI().Revert(ctx, uciRevertOpts)
+		clientset, _ := client.NewForClient(ctx, rpc.GetFromContext(c.Context()))
+		response, err := clientset.UCI().Revert(ctx, uciRevertOpts)
 		if err != nil {
 			return err
 		}
@@ -430,7 +432,7 @@ func (o *SetOptions) BindFlags(c *cobra.Command) {
 
 func (o *SetOptions) Run(c *cobra.Command) (err error) {
 	if err = checkConfig(o.Config); err == nil {
-		uciSetOpts := client.UCISetOptions{}
+		uciSetOpts := uci.SetOptions{}
 		switch o.Type {
 		case string(dhcp.Boot):
 			uciSetOpts = unmarshalCLIValues[dhcp.BootSectionOptions](o)
@@ -505,8 +507,8 @@ func (o *SetOptions) Run(c *cobra.Command) (err error) {
 		}
 
 		ctx := c.Context()
-		rpc := client.GetFromContext(c.Context())
-		response, err := rpc.UCI().Set(ctx, uciSetOpts)
+		clientset, _ := client.NewForClient(ctx, rpc.GetFromContext(c.Context()))
+		response, err := clientset.UCI().Set(ctx, uciSetOpts)
 		if err != nil {
 			return err
 		}

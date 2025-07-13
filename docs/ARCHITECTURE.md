@@ -1,7 +1,7 @@
 # Architecture
 
 ## Overview
-`UbusRPC` is the main client and calling object. Get one with `NewUbusRPC` and use it to make calls to
+`Clientset` is the main client and calling object. Get one with `NewClientset` and use it to make calls to
 the remote OpenWrt instance. Each ubus command ('path' in ubus docs) is an interface which contains
 all the subcommands ('procedure' in ubus docs) associated with that top level command. The parameters
 for each command ('signature' in ubus docs) is also an interface because every command has different
@@ -23,7 +23,7 @@ import (
 func main() {
 // create client caller
 clientOpts := client.ClientOptions{Username: "root", Password: "D@!monas", URL: "http://10.0.0.1/ubus", Timeout: session.DefaultSessionTimeout}
-rpc, _ := client.NewUbusRPC(ctx, &clientOpts)
+rpc, _ := client.NewClientset(ctx, &clientOpts)
 
 // make an RPC
 uciGetOpts := client.UCIGetOptions{Config: "firewall"} // declare parameters for the call
@@ -40,20 +40,20 @@ library deals with all that bespoke JSON marshaling and unmarshaling logic so th
 
 ## How Commands are Constructed
 
-All commands are built starting from a top level `UbusRPC` object because each command needs a ubus 
-session ID and this ID is stored within this object. The command is a method on the `UbusRPC` object
+All commands are built starting from a top level `Clientset` object because each command needs a ubus 
+session ID and this ID is stored within this object. The command is a method on the `Clientset` object
 which returns an interface containing methods which correspond to all of that command's subcommands.
-This interface is implemented by an unexported xRPC type which embeds `*UbusRPC`. 
+This interface is implemented by an unexported xRPC type which embeds `*Clientset`. 
 
 For example:
 ```
-func (u *UbusRPC) UCI() UCIInterface {
+func (u *Clientset) UCI() UCIInterface {
 	return newUCIRPC(u)
 }
 
-func newUCIRPC(u *UbusRPC) *uciRPC {
+func newUCIRPC(u *Clientset) *UCIClient {
 	u.Call.setPath("uci")
-	return &uciRPC{u}
+	return &UCIClient{u}
 }
 
 type UCIInterface interface {
@@ -62,11 +62,11 @@ type UCIInterface interface {
 }
 
 // implements UCIInterface
-type uciRPC struct {
-	*UbusRPC
+type UCIClient struct {
+	*Clientset
 }
 
-func (c *uciRPC) Get(ctx context.Context, opts UCIGetOptions) (Response, error) {
+func (c *UCIClient) Get(ctx context.Context, opts UCIGetOptions) (Response, error) {
 	c.setProcedure("get")
 	c.setSignature(opts)
 
@@ -104,7 +104,7 @@ type UCIGetOptions struct {
 	Option  string `json:"option,omitempty"`
 }
 
-func (UCIGetOptions) isOptsType() {}
+func (UCIGetOptions) IsOptsType() {}
 
 func (opts UCIGetOptions) GetResult(p Response) (u UCIGetResult, err error) {
 	if len(p) > 1 {
@@ -132,7 +132,7 @@ type valuesResult struct {
 	Values map[string]uci.ConfigSection `json:"values"`
 }
 
-func (valuesResult) isResultObject() {}
+func (valuesResult) IsResultObject() {}
 
 func (v valuesResult) MarshalJSON() ([]byte, error) {
 	...
