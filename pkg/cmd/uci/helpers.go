@@ -22,25 +22,25 @@ import (
 	"log"
 	"slices"
 
-	"github.com/daimonaslabs/go-ubus-rpc/pkg/client"
-	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/client/uci"
+	types "github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
 )
 
 func checkConfig(c string) error {
-	if !slices.Contains(uci.Configs, c) {
-		return fmt.Errorf("invalid config option, must be one of: %s", uci.Configs)
+	if !slices.Contains(types.Configs, c) {
+		return fmt.Errorf("invalid config option, must be one of: %s", types.Configs)
 	} else {
 		return nil
 	}
 }
 
-func unmarshalCLIValues[S uci.ConfigSectionOptions](o *SetOptions) (u client.UCISetOptions) {
+func unmarshalCLIValues[S types.ConfigSectionOptions](o *SetOptions) (u uci.SetOptions) {
 	var s S
 	err := json.Unmarshal([]byte(o.Values), &s)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	u = client.UCISetOptions{
+	u = uci.SetOptions{
 		Config:  o.Config,
 		Section: o.Section,
 		Values:  s,

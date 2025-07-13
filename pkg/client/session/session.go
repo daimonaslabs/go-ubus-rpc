@@ -14,35 +14,42 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package client
+package session
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
 
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/rpc"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/session"
 )
 
 type SessionInterface interface {
-	Login(ctx context.Context, opts SessionLoginOptions) (r Response, err error)
+	Login(ctx context.Context, opts LoginOptions) (r ubus.Response, err error)
 }
 
 // implements SessionInterface
-type sessionRPC struct {
-	*UbusRPC
+type SessionClient struct {
+	call   *ubus.Call
+	client rpc.UbusRPCInterface
 }
 
-func newSessionRPC(u *UbusRPC) *sessionRPC {
-	u.Call.setPath("session")
-	return &sessionRPC{u}
+func NewSessionClient(r *rpc.UbusRPCClient) (c *SessionClient) {
+	c = &SessionClient{
+		call: &ubus.Call{},
+	}
+	c.call.SetPath("session")
+	c.client = r
+	return c
 }
 
-func (c *sessionRPC) Login(ctx context.Context, opts SessionLoginOptions) (Response, error) {
-	c.setProcedure("login")
-	c.setSignature(opts)
+func (c *SessionClient) Login(ctx context.Context, opts LoginOptions) (ubus.Response, error) {
+	c.call.SetProcedure("login")
+	c.call.SetSignature(opts)
 
-	return c.do(ctx)
+	return c.client.Do(ctx, c.call)
 }
 
 /*
@@ -55,25 +62,25 @@ func (c *sessionRPC) Login(ctx context.Context, opts SessionLoginOptions) (Respo
 */
 
 // implements Signature interface
-type SessionLoginOptions struct {
+type LoginOptions struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Timeout  uint   `json:"timeout"`
 }
 
-func (SessionLoginOptions) isOptsType() {}
+func (LoginOptions) IsOptsType() {}
 
-func (opts SessionLoginOptions) GetResult(p Response) (u LoginResult, err error) {
+func (opts LoginOptions) GetResult(p ubus.Response) (u LoginResult, err error) {
 	if len(p) > 1 {
 		data, _ := json.Marshal(p[1])
 		switch p[1].(type) {
-		case sessionResult:
+		case ubus.SessionResult:
 			json.Unmarshal(data, &u)
 		default:
 			return LoginResult{}, errors.New("not a LoginResult")
 		}
 	} else { // error
-		return LoginResult{}, errors.New(p[0].(ExitCode).Error())
+		return LoginResult{}, errors.New(p[0].(ubus.ExitCode).Error())
 	}
 	return u, nil
 }
@@ -89,40 +96,4 @@ func (opts SessionLoginOptions) GetResult(p Response) (u LoginResult, err error)
 // result of a `session login` command
 type LoginResult struct {
 	session.Session `json:",inline"`
-}
-
-/*
-################################################################
-#
-# all unexported xResult types are in this block.
-#
-################################################################
-*/
-
-// implements ResultObject interface
-// used for handling the raw RPC response
-type sessionResult struct {
-	session.Session
-}
-
-func (sessionResult) isResultObject() {}
-
-/*
-################################################################
-#
-# all matchXResult funcs are in this block. used in init().
-#
-################################################################
-*/
-
-// checker for sessionResponse
-func matchSessionResult(data json.RawMessage) (ResultObject, error) {
-	var val session.Session
-
-	if err := json.Unmarshal(data, &val); err == nil {
-		if val.SessionID != "" { // easiest way to see if it unmarshaled into an empty Session struct
-			return sessionResult{val}, nil
-		}
-	}
-	return nil, nil
 }

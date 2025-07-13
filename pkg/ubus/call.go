@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package client
+package ubus
 
 import (
 	"encoding/json"
@@ -26,38 +26,38 @@ type Params []any
 
 // all implementations have an implicit method of GetResult(Response) (xResult, error)
 type Signature interface {
-	isOptsType()
+	IsOptsType()
 }
 
 // implements Signature
 type Call struct {
-	SessionID session.SessionID
-	Path      string
-	Procedure string
-	Signature Signature
+	sessionID session.SessionID
+	path      string
+	procedure string
+	signature Signature
 }
 
-func (c *Call) asParams() Params {
-	return Params{c.SessionID, c.Path, c.Procedure, c.Signature}
+func (c *Call) AsParams() Params {
+	return Params{c.sessionID, c.path, c.procedure, c.signature}
 }
 
-func (c *Call) setSessionID(id session.SessionID) {
-	c.SessionID = id
+func (c *Call) SetSessionID(id session.SessionID) {
+	c.sessionID = id
 }
 
-func (c *Call) setPath(p string) {
-	c.Path = p
+func (c *Call) SetPath(p string) {
+	c.path = p
 }
 
-func (c *Call) setProcedure(p string) {
-	c.Procedure = p
+func (c *Call) SetProcedure(p string) {
+	c.procedure = p
 }
 
-func (uc *Call) setSignature(sig Signature) {
+func (uc *Call) SetSignature(sig Signature) {
 	data, err := json.Marshal(sig)
 	if err != nil {
 		panic(err)
 	}
-	uc.Signature = sig
-	json.Unmarshal(data, &uc.Signature)
+	uc.signature = sig
+	json.Unmarshal(data, &uc.signature)
 }

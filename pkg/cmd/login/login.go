@@ -21,7 +21,7 @@ import (
 	"log"
 	"reflect"
 
-	"github.com/daimonaslabs/go-ubus-rpc/pkg/client"
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/rpc"
 	"github.com/spf13/cobra"
 )
 
@@ -44,7 +44,7 @@ func NewLoginCommand() *cobra.Command {
 }
 
 type LoginOptions struct {
-	client.ClientOptions
+	rpc.UbusRPCClientOptions
 }
 
 func (o *LoginOptions) BindFlags(c *cobra.Command) {
@@ -59,7 +59,7 @@ func (o *LoginOptions) BindFlags(c *cobra.Command) {
 
 func (o *LoginOptions) Run(c *cobra.Command) error {
 	ctx := context.Background()
-	rpc, err := client.NewUbusRPC(ctx, &o.ClientOptions)
+	rpc, err := rpc.NewUbusRPCClient(ctx, o.UbusRPCClientOptions)
 	if err != nil {
 		log.Fatalln("error creating ubus client")
 	}
