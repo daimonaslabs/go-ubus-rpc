@@ -20,7 +20,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -77,7 +76,6 @@ type UbusRPCClient struct {
 func (u *UbusRPCClient) Do(ctx context.Context, call *ubus.Call) (r ubus.Response, err error) {
 	call.SetSessionID(u.UbusSession.SessionID)
 	err = u.RPCClient.CallContext(ctx, &r, "call", call.AsParams()...)
-	fmt.Println("Do:", err, call.AsParams())
 	if len(r) == 0 {
 		err = errors.New("empty response")
 		return nil, err

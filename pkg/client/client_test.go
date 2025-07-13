@@ -19,7 +19,6 @@ package client
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"reflect"
 	"slices"
@@ -45,7 +44,7 @@ func prepare() (ctx context.Context, c *Clientset) {
 	if err != nil {
 		log.Fatalln("error creating ubus client")
 	}
-	fmt.Println("prepare(): ", c)
+
 	return ctx, c
 }
 

@@ -25,7 +25,7 @@ import (
 )
 
 type Interface interface {
-	Client() rpc.UbusRPCInterface
+	UbusRPCClient() rpc.UbusRPCInterface
 	Session() session.SessionInterface
 	UCI() uci.UCIInterface
 }
@@ -37,7 +37,7 @@ type Clientset struct {
 	uciClient     *uci.UCIClient
 }
 
-func (u *Clientset) Client() rpc.UbusRPCInterface {
+func (u *Clientset) UbusRPCClient() rpc.UbusRPCInterface {
 	return &u.rpcClient
 }
 
@@ -49,12 +49,14 @@ func (u *Clientset) UCI() uci.UCIInterface {
 	return uci.NewUCIClient(&u.rpcClient)
 }
 
+// create a new clientset for the given RPC client
 func NewForClient(ctx context.Context, client *rpc.UbusRPCClient) (c *Clientset, err error) {
 	return &Clientset{
 		rpcClient: *client,
 	}, nil
 }
 
+// create a new clientset for the given RPC client options
 func NewForOpts(ctx context.Context, opts rpc.UbusRPCClientOptions) (c *Clientset, err error) {
 	urc, err := rpc.NewUbusRPCClient(ctx, opts)
 	return &Clientset{
