@@ -43,43 +43,43 @@ This will write a file to `~/.go-ubus-rpc/config.json` containing your connectio
 will read this file and use it to make future calls. After logging in, you can run other commands:
 ```
 $ gur uci get -c network
-{                                                                                  
-  "sections": [                                                                    
-    {                                                                              
-      ".anonymous": false,                                                         
-      ".type": "interface",                                                        
-      ".name": "loopback",                                                         
-      ".index": 0,                                                                 
-      "device": "lo"                                                               
-    },                                                                             
-    {                                                                              
-      ".anonymous": false,                                                         
-      ".type": "globals",                                                          
-      ".name": "globals",                                                          
-      ".index": 1,                                                                 
-      "packet_steering": "1",                                                      
-      "ula_prefix": "fd29:9d35:2b57::/48"                                          
+{
+  "sections": [
+    {
+      ".anonymous": false,
+      ".type": "interface",
+      ".name": "loopback",
+      ".index": 0,
+      "device": "lo"
+    },
+    {
+      ".anonymous": false,
+      ".type": "globals",
+      ".name": "globals",
+      ".index": 1,
+      "packet_steering": "1",
+      "ula_prefix": "fd29:9d35:2b57::/48"
     },
     ...
 
 $ gur uci get -c network -t device
-{                                                                                  
-  "sections": [                                                                    
-    {                                                                              
-      ".anonymous": true,                                                          
-      ".type": "device",                                                           
-      ".name": "cfg030f15",                                                        
-      ".index": 2,                                                                 
-      "name": "br-lan",                                                            
-      "ports": [                                                                   
-        "eth1",                                                                    
-        "lan1",                                                                    
-        "lan2",                                                                    
-        "lan3",                                                                    
-        "lan4",                                                                    
-        "sfp2"                                                                     
-      ],                                                                           
-      "type": "bridge"                                                             
+{
+  "sections": [
+    {
+      ".anonymous": true,
+      ".type": "device",
+      ".name": "cfg030f15",
+      ".index": 2,
+      "name": "br-lan",
+      "ports": [
+        "eth1",
+        "lan1",
+        "lan2",
+        "lan3",
+        "lan4",
+        "sfp2"
+      ],
+      "type": "bridge"
     },
     ...
 ```
