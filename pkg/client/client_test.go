@@ -25,6 +25,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/client/file"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/client/uci"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/rpc"
 	types "github.com/daimonaslabs/go-ubus-rpc/pkg/ubus/uci"
@@ -177,4 +178,86 @@ func TestUCIRevert(t *testing.T) {
 	if changesResult.Changes == nil {
 		t.Error("did not revert changes!")
 	}
+}
+
+func TestFileRead(t *testing.T) {
+	ctx, clientset := prepare()
+
+	// read a file common in openwrt
+	fileReadOpts := file.ReadOptions{Path: "/etc/openwrt_version"}
+	_, err := clientset.File().Read(ctx, fileReadOpts)
+	checkErr(t, err)
+}
+
+func TestFileWrite(t *testing.T) {
+	ctx, clientset := prepare()
+
+	//write a file inside tmp for testing purposes
+	fileWriteOpts := file.WriteOptions{Path: "/tmp/test_write.txt", Data: "Test Content"}
+	_, err := clientset.File().Write(ctx, fileWriteOpts)
+	checkErr(t, err)
+}
+
+func TestFileList(t *testing.T) {
+	ctx, clientset := prepare()
+
+	//List all files from a directory
+	fileListOpts := file.ListOptions{Path: "/etc"}
+	_, err := clientset.File().List(ctx, fileListOpts)
+	checkErr(t, err)
+
+}
+
+func TestFileStatDir(t *testing.T) {
+	ctx, clientset := prepare()
+
+	//Display info about a directory
+	fileStatOpts := file.StatOptions{Path: "/etc"}
+	_, err := clientset.File().Stat(ctx, fileStatOpts)
+	checkErr(t, err)
+
+}
+
+func TestFileStatFile(t *testing.T) {
+	ctx, clientset := prepare()
+
+	//Display info about a File
+	fileStatOpts := file.StatOptions{Path: "/etc/openwrt_version"}
+	_, err := clientset.File().Stat(ctx, fileStatOpts)
+	checkErr(t, err)
+
+}
+
+func TestFileMD5(t *testing.T) {
+	ctx, clientset := prepare()
+
+	//Display MD5 info about a File
+	fileMD5Opts := file.MD5Options{Path: "/etc/openwrt_version"}
+	_, err := clientset.File().MD5(ctx, fileMD5Opts)
+	checkErr(t, err)
+
+}
+
+func TestFileRemove(t *testing.T) {
+	ctx, clientset := prepare()
+
+	//write a file inside tmp for testing purposes
+	fileWriteOpts := file.WriteOptions{Path: "/tmp/test_remove.txt", Data: "Test Content"}
+	_, err := clientset.File().Write(ctx, fileWriteOpts)
+	checkErr(t, err)
+
+	//Remove file on tmp
+	fileRemoveOpts := file.RemoveOptions{Path: "/tmp/test_remove.txt"}
+	_, err = clientset.File().Remove(ctx, fileRemoveOpts)
+	checkErr(t, err)
+}
+
+func TestFileExec(t *testing.T) {
+	ctx, clientset := prepare()
+
+	//run dmesg cmd
+	fileExecOpts := file.ExecOptions{Command: "/bin/dmesg", Params: []string{"-r"}}
+	_, err := clientset.File().Exec(ctx, fileExecOpts)
+	checkErr(t, err)
+
 }

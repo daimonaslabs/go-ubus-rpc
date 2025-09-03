@@ -19,6 +19,7 @@ package client
 import (
 	"context"
 
+	"github.com/daimonaslabs/go-ubus-rpc/pkg/client/file"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/client/session"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/client/uci"
 	"github.com/daimonaslabs/go-ubus-rpc/pkg/rpc"
@@ -47,6 +48,10 @@ func (u *Clientset) Session() session.SessionInterface {
 
 func (u *Clientset) UCI() uci.UCIInterface {
 	return uci.NewUCIClient(&u.rpcClient)
+}
+
+func (u *Clientset) File() file.FileInterface {
+	return file.NewFileClient(&u.rpcClient)
 }
 
 // create a new clientset for the given RPC client

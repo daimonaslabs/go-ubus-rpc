@@ -108,8 +108,54 @@ type ExitCode int
 
 func (e ExitCode) IsResultObject() {}
 
+const (
+	UbusStatusOK ExitCode = iota
+	UbusStatusInvalidCommand
+	UbusStatusInvalidArgument
+	UbusStatusMethodNotFound
+	UbusStatusNotFound
+	UbusStatusNoData
+	UbusStatusPermissionDenied
+	UbusStatusTimeout
+	UbusStatusNotSupported
+	UbusStatusUnknownError
+	UbusStatusConnectionFailed
+	UbusStatusLast
+)
+
+func (e ExitCode) String() string {
+	switch e {
+	case UbusStatusOK:
+		return "UbusStatusOK"
+	case UbusStatusInvalidCommand:
+		return "UbusStatusInvalidCommand"
+	case UbusStatusInvalidArgument:
+		return "UbusStatusInvalidArgument"
+	case UbusStatusMethodNotFound:
+		return "UbusStatusMethodNotFound"
+	case UbusStatusNotFound:
+		return "UbusStatusNotFound"
+	case UbusStatusNoData:
+		return "UbusStatusNoData"
+	case UbusStatusPermissionDenied:
+		return "UbusStatusPermissionDenied"
+	case UbusStatusTimeout:
+		return "UbusStatusTimeout"
+	case UbusStatusNotSupported:
+		return "UbusStatusNotSupported"
+	case UbusStatusUnknownError:
+		return "UbusStatusUnknownError"
+	case UbusStatusConnectionFailed:
+		return "UbusStatusConnectionFailed"
+	case UbusStatusLast:
+		return "UbusStatusLast"
+	default:
+		return "Unknown ExitCode"
+	}
+}
+
 func (e ExitCode) Error() string {
-	return fmt.Sprintf("exit status %d", e)
+	return fmt.Sprintf("exit status (%d) %s", e, e.String())
 }
 
 // implements ResultObject interface
@@ -230,6 +276,47 @@ type ValueResult struct {
 }
 
 func (ValueResult) IsResultObject() {}
+
+type DataResult struct {
+	Data string `json:"data"`
+}
+
+func (DataResult) IsResultObject() {}
+
+type FileResult struct {
+	Name  string `json:"name,omitempty"`
+	Path  string `json:"path,omitempty"`
+	Type  string `json:"type"`
+	Size  int    `json:"size"`
+	Mode  int    `json:"mode"`
+	Atime int    `json:"atime"`
+	Mtime int    `json:"mtime"`
+	Ctime int    `json:"ctime"`
+	Inode int    `json:"inode"`
+	UID   int    `json:"uid"`
+	GID   int    `json:"gid"`
+}
+
+func (FileResult) IsResultObject() {}
+
+type EntriesResult struct {
+	Entries []interface{} `json:"entries"`
+}
+
+func (EntriesResult) IsResultObject() {}
+
+type MD5Result struct {
+	MD5 string `json:"md5"`
+}
+
+func (MD5Result) IsResultObject() {}
+
+type ExecResult struct {
+	Code   int    `json:"code"`
+	Stdout string `json:"stdout"`
+}
+
+func (ExecResult) IsResultObject() {}
 
 // implements ResultObject interface
 // used for handling the raw RPC response
@@ -538,6 +625,66 @@ func matchValuesResult(data json.RawMessage) (ResultObject, error) {
 	return nil, nil
 }
 
+func matchDataResult(data json.RawMessage) (ResultObject, error) {
+	var val DataResult
+
+	if err := json.Unmarshal(data, &val); err == nil {
+		if len(val.Data) > 0 {
+			return val, nil
+		}
+	}
+
+	return nil, nil
+}
+
+func matchEntriesResult(data json.RawMessage) (ResultObject, error) {
+	var val EntriesResult
+
+	if err := json.Unmarshal(data, &val); err == nil {
+		if len(val.Entries) > 0 {
+			return val, nil
+		}
+	}
+
+	return nil, nil
+}
+
+func matchFileResult(data json.RawMessage) (ResultObject, error) {
+	var val FileResult
+
+	if err := json.Unmarshal(data, &val); err == nil {
+		if val != (FileResult{}) {
+			return val, nil
+		}
+	}
+
+	return nil, nil
+}
+
+func matchMD5Result(data json.RawMessage) (ResultObject, error) {
+	var val MD5Result
+
+	if err := json.Unmarshal(data, &val); err == nil {
+		if len(val.MD5) > 0 {
+			return val, nil
+		}
+	}
+
+	return nil, nil
+}
+
+func matchExecResult(data json.RawMessage) (ResultObject, error) {
+	var val ExecResult
+
+	if err := json.Unmarshal(data, &val); err == nil {
+		if len(val.Stdout) > 0 {
+			return val, nil
+		}
+	}
+
+	return nil, nil
+}
+
 // response type registry
 type resultObjectMatcher func(json.RawMessage) (ResultObject, error)
 
@@ -557,6 +704,11 @@ func init() {
 	registerResultObjectMatcher(matchAddResult)
 	registerResultObjectMatcher(matchChangesResult)
 	registerResultObjectMatcher(matchConfigsResult)
+	registerResultObjectMatcher(matchDataResult)
+	registerResultObjectMatcher(matchEntriesResult)
+	registerResultObjectMatcher(matchMD5Result)
+	registerResultObjectMatcher(matchExecResult)
+	registerResultObjectMatcher(matchFileResult)
 	registerResultObjectMatcher(matchSessionResult)
 	registerResultObjectMatcher(matchValueResult)
 	registerResultObjectMatcher(matchValuesResult)
